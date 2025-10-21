@@ -1,21 +1,16 @@
-// routes/parking.js
 const express = require('express');
 const router = express.Router();
 const parkingController = require('../controllers/parkingController');
+const auth = require('../middleware/auth');         // already existing
+const adminAuth = require('../middleware/adminAuth'); // new
 
-// If you want to protect creation/deletion, require auth middleware:
-// const auth = require('../middleware/auth');
-
+// Public routes (anyone can view slots)
 router.get('/slots', parkingController.getSlots);
 router.get('/slots/:id', parkingController.getSlot);
 
-// Protect these in future: router.post('/slots', auth, parkingController.addSlot);
-router.post('/slots', parkingController.addSlot);
-
-// router.put('/slots/:id', auth, parkingController.updateSlot);
-router.put('/slots/:id', parkingController.updateSlot);
-
-// router.delete('/slots/:id', auth, parkingController.deleteSlot);
-router.delete('/slots/:id', parkingController.deleteSlot);
+// Admin-only routes
+router.post('/slots', auth, adminAuth, parkingController.addSlot);
+router.put('/slots/:id', auth, adminAuth, parkingController.updateSlot);
+router.delete('/slots/:id', auth, adminAuth, parkingController.deleteSlot);
 
 module.exports = router;

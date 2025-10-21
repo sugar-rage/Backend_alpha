@@ -33,16 +33,37 @@ exports.bookSlot = async (req, res, next) => {
   }
 };
 
-// Cancel booking
+// Get all bookings (admin only)
+exports.allBookings = async (req, res, next) => {
+  try {
+    const bookings = await Booking.findAll({
+      include: [
+        { model: Slot },
+        { model: Vehicle },
+        { model: User, attributes: ['id', 'name', 'email', 'role'] }
+      ]
+    });
+    res.json({ bookings });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// Cancel booking (user can cancel own, admin can cancel any)
 exports.cancelBooking = async (req, res, next) => {
   try {
     const { bookingId } = req.params;
     const userId = req.user.id;
+    const role = req.user.role;
 
-    const booking = await Booking.findOne({
-      where: { id: bookingId, userId }
-    });
+    const booking = await Booking.findByPk(bookingId);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    // Only owner or admin can cancel
+    if (booking.userId !== userId && role !== 'admin') {
+      return res.status(403).json({ message: "Forbidden: Cannot cancel this booking" });
+    }
 
     await booking.update({ paymentStatus: 'Cancelled' });
 
@@ -56,16 +77,24 @@ exports.cancelBooking = async (req, res, next) => {
   }
 };
 
-// Get my bookings
+// Get bookings (admin sees all, user sees own)
 exports.myBookings = async (req, res, next) => {
   try {
+    let whereCondition = {};
+
+    if (req.user.role !== 'admin') {
+      whereCondition.userId = req.user.id;
+    }
+
     const bookings = await Booking.findAll({
-      where: { userId: req.user.id },
+      where: whereCondition,
       include: [
         { model: Slot },
-        { model: Vehicle }
+        { model: Vehicle },
+        { model: User, attributes: ['id', 'name', 'email', 'role'] } // optional
       ]
     });
+
     res.json({ bookings });
   } catch (err) {
     next(err);
