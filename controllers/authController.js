@@ -2,49 +2,50 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// ==============================
-// Register
-// ==============================
-exports.register = async (req, res, next) => {
+// =========================
+// Admin creates a new user
+// =========================
+exports.createUser = async (req, res, next) => {
   try {
+    // ✅ Ensure only admin can create users
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Only admin can create users.' });
+    }
+
     const { name, email, password, contact, role } = req.body;
     if (!name || !email || !password)
-      return res.status(400).json({ message: 'Name, email and password required' });
+      return res.status(400).json({ message: 'Name, email, and password required' });
 
     const existing = await User.findOne({ where: { email: email.toLowerCase() } });
     if (existing) return res.status(400).json({ message: 'User already exists' });
 
-    const salt = await bcrypt.genSalt(10);
-    const hashed = await bcrypt.hash(password, salt);
+    const hashed = await bcrypt.hash(password, 10);
 
-    // Default role is 'user'. Only admin can assign a role
-    let userRole = 'user';
-    if (req.user && req.user.role === 'admin' && role) {
-      userRole = role; // allow 'user' or 'admin'
-    }
-
-    const user = await User.create({
+    const newUser = await User.create({
       name,
       email: email.toLowerCase(),
       password: hashed,
       contact,
-      role: userRole
+      role: role || 'user' // by default, new users are "user"
     });
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
     res.status(201).json({
-      token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      message: 'User created successfully',
+      user: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role
+      }
     });
   } catch (err) {
     next(err);
   }
 };
 
-// ==============================
-// Login
-// ==============================
+// =========================
+// Login (both admin & user)
+// =========================
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -57,11 +58,22 @@ exports.login = async (req, res, next) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    // ✅ Generate JWT with role embedded
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
     res.json({
+      message: 'Login successful',
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
   } catch (err) {
     next(err);
