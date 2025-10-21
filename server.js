@@ -1,38 +1,42 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
+
+const { sequelize, User, Vehicle, Slot, Booking } = require('./models'); // import all models
+const authRoutes = require('./routes/auth');
+const bookingRoutes = require('./routes/booking');
+const parkingRoutes = require('./routes/parking');
+const vehicleRoutes = require('./routes/vehicle');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ DB Connection Failed:", err));
-
-const authRoutes = require('./routes/auth');    
-
+// ===========================
+// ✅ Routes
+// ===========================
 app.use('/api/auth', authRoutes);
-
-const parkingRoutes = require('./routes/parking');
-
-app.use('/api', parkingRoutes);
-
-const bookingRoutes = require('./routes/booking');
-
 app.use('/api/bookings', bookingRoutes);
+app.use('/api', parkingRoutes);
+app.use('/api/vehicles', vehicleRoutes);
 
-const vehicleRoutes = require("./routes/vehicle");
+// Default route
+app.get('/', (req, res) => res.send({ status: 'Alpha Backend running with MySQL' }));
 
-app.use("/api/vehicles", vehicleRoutes);
-
-app.get('/', (req, res) => res.send({ status: 'Alpha Backend running' }));
-
+// Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Server Error', error: err.message });
 });
 
+// ===========================
+// ✅ Sync Sequelize models & Start Server
+// ===========================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+sequelize.sync({ alter: true }) // auto-create/update tables
+  .then(() => {
+    console.log('✅ Tables synced successfully');
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  })
+  .catch(err => console.error('❌ Sequelize sync failed:', err));

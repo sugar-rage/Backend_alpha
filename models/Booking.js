@@ -1,12 +1,61 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../utils/db');
+const User = require('./User');
+const Vehicle = require('./Vehicle');
+const Slot = require('./Slot');
 
-const bookingSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  vehicle: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', required: true },
-  slot: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot', required: true },
-  startTime: { type: Date, default: Date.now },
-  endTime: { type: Date },
-  paymentStatus: { type: String, enum: ['Pending', 'Completed', 'Cancelled'], default: 'Pending' }
-}, { timestamps: true });
+const Booking = sequelize.define('Booking', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: User,
+      key: 'id'
+    }
+  },
+  vehicleId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: Vehicle,
+      key: 'id'
+    }
+  },
+  slotId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: Slot,
+      key: 'id'
+    }
+  },
+  startTime: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
+  endTime: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  paymentStatus: {
+    type: DataTypes.ENUM('Pending', 'Completed', 'Cancelled'),
+    defaultValue: 'Pending'
+  }
+}, {
+  timestamps: true,
+  tableName: 'bookings'
+});
 
-module.exports = mongoose.model('Booking', bookingSchema);
+// ===========================
+// ✅ Associations
+// ===========================
+Booking.belongsTo(User, { foreignKey: 'userId' });
+Booking.belongsTo(Vehicle, { foreignKey: 'vehicleId' });
+Booking.belongsTo(Slot, { foreignKey: 'slotId' });
+
+module.exports = Booking;

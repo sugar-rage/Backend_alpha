@@ -1,12 +1,9 @@
-// controllers/parkingController.js
 const Slot = require('../models/Slot');
-const Booking = require('../models/Booking'); // if you created Booking model earlier
-const mongoose = require('mongoose');
 
 // GET /api/slots
 exports.getSlots = async (req, res, next) => {
   try {
-    const slots = await Slot.find().lean();
+    const slots = await Slot.findAll();
     res.json({ slots });
   } catch (err) {
     next(err);
@@ -16,7 +13,7 @@ exports.getSlots = async (req, res, next) => {
 // GET /api/slots/:id
 exports.getSlot = async (req, res, next) => {
   try {
-    const slot = await Slot.findById(req.params.id);
+    const slot = await Slot.findByPk(req.params.id);
     if (!slot) return res.status(404).json({ message: 'Slot not found' });
     res.json(slot);
   } catch (err) {
@@ -30,7 +27,7 @@ exports.addSlot = async (req, res, next) => {
     const { label, lotName, level, hourlyRate } = req.body;
     if (!label) return res.status(400).json({ message: 'label required' });
 
-    const exists = await Slot.findOne({ label });
+    const exists = await Slot.findOne({ where: { label } });
     if (exists) return res.status(400).json({ message: 'Slot with this label already exists' });
 
     const slot = await Slot.create({ label, lotName, level, hourlyRate });
@@ -43,9 +40,11 @@ exports.addSlot = async (req, res, next) => {
 // PUT /api/slots/:id  (update slot)
 exports.updateSlot = async (req, res, next) => {
   try {
-    const updated = await Slot.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: 'Slot not found' });
-    res.json(updated);
+    const slot = await Slot.findByPk(req.params.id);
+    if (!slot) return res.status(404).json({ message: 'Slot not found' });
+
+    await slot.update(req.body);
+    res.json(slot);
   } catch (err) {
     next(err);
   }
@@ -54,8 +53,10 @@ exports.updateSlot = async (req, res, next) => {
 // DELETE /api/slots/:id
 exports.deleteSlot = async (req, res, next) => {
   try {
-    const deleted = await Slot.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: 'Slot not found' });
+    const slot = await Slot.findByPk(req.params.id);
+    if (!slot) return res.status(404).json({ message: 'Slot not found' });
+
+    await slot.destroy();
     res.json({ message: 'Slot deleted' });
   } catch (err) {
     next(err);

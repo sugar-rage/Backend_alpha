@@ -1,5 +1,7 @@
 const Booking = require('../models/Booking');
 const Slot = require('../models/Slot');
+const Vehicle = require('../models/Vehicle');
+const User = require('../models/User');
 
 // Book a slot
 exports.bookSlot = async (req, res, next) => {
@@ -8,20 +10,19 @@ exports.bookSlot = async (req, res, next) => {
     const userId = req.user.id;
 
     // Check slot
-    const slot = await Slot.findById(slotId);
+    const slot = await Slot.findByPk(slotId);
     if (!slot || slot.status !== 'Available') {
       return res.status(409).json({ message: "Slot not available" });
     }
 
     // Reserve slot
-    slot.status = "Reserved";
-    await slot.save();
+    await slot.update({ status: 'Reserved' });
 
     // Create booking
     const booking = await Booking.create({
-      user: userId,
-      vehicle: vehicleId,
-      slot: slotId,
+      userId,
+      vehicleId,
+      slotId,
       startTime,
       endTime
     });
@@ -38,14 +39,16 @@ exports.cancelBooking = async (req, res, next) => {
     const { bookingId } = req.params;
     const userId = req.user.id;
 
-    const booking = await Booking.findOne({ _id: bookingId, user: userId });
+    const booking = await Booking.findOne({
+      where: { id: bookingId, userId }
+    });
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-    booking.paymentStatus = "Cancelled";
-    await booking.save();
+    await booking.update({ paymentStatus: 'Cancelled' });
 
     // Free slot
-    await Slot.findByIdAndUpdate(booking.slot, { status: "Available" });
+    const slot = await Slot.findByPk(booking.slotId);
+    if (slot) await slot.update({ status: 'Available' });
 
     res.json({ message: "Booking cancelled successfully" });
   } catch (err) {
@@ -56,7 +59,13 @@ exports.cancelBooking = async (req, res, next) => {
 // Get my bookings
 exports.myBookings = async (req, res, next) => {
   try {
-    const bookings = await Booking.find({ user: req.user.id }).populate('slot vehicle');
+    const bookings = await Booking.findAll({
+      where: { userId: req.user.id },
+      include: [
+        { model: Slot },
+        { model: Vehicle }
+      ]
+    });
     res.json({ bookings });
   } catch (err) {
     next(err);

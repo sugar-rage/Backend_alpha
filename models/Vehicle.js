@@ -1,9 +1,38 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../utils/db');
+const User = require('./User');
 
-const vehicleSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  plateNo: { type: String, required: true, unique: true },
-  type: { type: String, enum: ['TwoWheeler', 'Car', 'Other'], default: 'Car' }
-}, { timestamps: true });
+const Vehicle = sequelize.define('Vehicle', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: User,
+      key: 'id'
+    }
+  },
+  plateNo: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  },
+  type: {
+    type: DataTypes.ENUM('TwoWheeler', 'Car', 'Other'),
+    defaultValue: 'Car'
+  }
+}, {
+  timestamps: true,
+  tableName: 'vehicles'
+});
 
-module.exports = mongoose.model('Vehicle', vehicleSchema);
+// ===========================
+// ✅ Associations
+// ===========================
+Vehicle.belongsTo(User, { foreignKey: 'userId' });
+
+module.exports = Vehicle;
