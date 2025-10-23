@@ -16,6 +16,10 @@ const Vehicle = sequelize.define('Vehicle', {
       key: 'id'
     }
   },
+  color: {                   
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   plateNo: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -34,5 +38,5 @@ const Vehicle = sequelize.define('Vehicle', {
 // ✅ Associations
 // ===========================
 Vehicle.belongsTo(User, { foreignKey: 'userId' });
-
+sequelize.sync({ alter: true });
 module.exports = Vehicle;

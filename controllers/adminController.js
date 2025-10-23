@@ -1,31 +1,35 @@
 // controllers/adminController.js
-const User = require('../models/User');
-const Vehicle = require('../models/Vehicle');
-const Slot = require('../models/Slot');
+const { User, Vehicle, Slot, Booking } = require('../models');
 
 exports.getCatalog = async (req, res, next) => {
   try {
-    // Get all users
-    const users = await User.findAll({
-      attributes: ['id', 'name', 'email', 'contact', 'role', 'createdAt'],
+    // Fetch complete catalog with joins
+    const catalog = await Booking.findAll({
+      attributes: ['id', 'startTime', 'endTime', 'status', 'createdAt'],
       include: [
         {
+          model: User,
+          attributes: ['id', 'name', 'email', 'contact', 'role']
+        },
+        {
           model: Vehicle,
-          attributes: ['id', 'plateNo', 'type', 'createdAt']
+          attributes: ['id', 'plateNo', 'type', 'color']   // ✅ Added color
+        },
+        {
+          model: Slot,
+          attributes: ['id', 'label', 'lotName', 'level', 'hourlyRate', 'status']
         }
-      ]
-    });
-
-    // Get all slots
-    const slots = await Slot.findAll({
-      attributes: ['id', 'label', 'lotName', 'level', 'hourlyRate', 'status', 'createdAt']
+      ],
+      order: [['createdAt', 'DESC']]
     });
 
     res.json({
-      users,
-      slots
+      message: 'Admin catalog fetched successfully',
+      count: catalog.length,
+      catalog
     });
   } catch (err) {
+    console.error('Error fetching catalog:', err);
     next(err);
   }
 };
