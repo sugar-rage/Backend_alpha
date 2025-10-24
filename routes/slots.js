@@ -1,19 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const adminOnly = require('../middleware/adminOnly');
-const slotController = require('../controllers/slotController');
+const parkingController = require('../controllers/parkingController');
 
-// Admin: Create new slot
-router.post('/', auth, adminOnly, slotController.createSlot);
+// Public routes: anyone can view
+router.get('/', parkingController.getSlots);
+router.get('/:id', parkingController.getSlot);
 
-// Admin: Update slot
-router.put('/:id', auth, adminOnly, slotController.updateSlot);
-
-// Admin: Delete slot
-router.delete('/:id', auth, adminOnly, slotController.deleteSlot);
-
-// Everyone: View slots
-router.get('/', slotController.getAllSlots);
+// Admin-only routes
+router.post('/', auth('admin'), parkingController.addSlot);
+router.put('/:id', auth('admin'), parkingController.updateSlot);
+router.delete('/:id', auth('admin'), parkingController.deleteSlot);
 
 module.exports = router;

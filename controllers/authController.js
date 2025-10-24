@@ -7,7 +7,7 @@ const User = require('../models/User');
 // =========================
 exports.createUser = async (req, res, next) => {
   try {
-    // ✅ Ensure only admin can create users
+    // ✅ Only admin can create users
     if (!req.user || req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Access denied. Only admin can create users.' });
     }
@@ -26,7 +26,7 @@ exports.createUser = async (req, res, next) => {
       email: email.toLowerCase(),
       password: hashed,
       contact,
-      role: role || 'user' // by default, new users are "user"
+      role: role || 'user'
     });
 
     res.status(201).json({
@@ -44,7 +44,7 @@ exports.createUser = async (req, res, next) => {
 };
 
 // =========================
-// Login (both admin & user)
+// Login (admin & user)
 // =========================
 exports.login = async (req, res, next) => {
   try {
@@ -58,12 +58,9 @@ exports.login = async (req, res, next) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-    // ✅ Generate JWT with role embedded
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: '7d'
+    });
 
     res.json({
       message: 'Login successful',

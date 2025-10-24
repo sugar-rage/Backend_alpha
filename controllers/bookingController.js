@@ -20,10 +20,11 @@ exports.bookSlot = async (req, res, next) => {
       vehicleId,
       slotId,
       startTime,
-      endTime
+      endTime,
+      status: 'Booked'
     });
 
-    res.status(201).json({ booking });
+    res.status(201).json({ message: 'Slot booked successfully', booking });
   } catch (err) {
     next(err);
   }
@@ -38,7 +39,7 @@ exports.cancelBooking = async (req, res, next) => {
     const booking = await Booking.findOne({ where: { id: bookingId, userId } });
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-    await booking.update({ paymentStatus: 'Cancelled' });
+    await booking.update({ status: 'Cancelled' });
 
     const slot = await Slot.findByPk(booking.slotId);
     if (slot) await slot.update({ status: 'Available' });
@@ -54,9 +55,32 @@ exports.myBookings = async (req, res, next) => {
   try {
     const bookings = await Booking.findAll({
       where: { userId: req.user.id },
-      include: [ Slot, Vehicle ]
+      include: [Slot, Vehicle],
+      order: [['createdAt', 'DESC']]
     });
     res.json({ bookings });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Admin: Get all bookings
+exports.allBookings = async (req, res, next) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin only.' });
+    }
+
+    const bookings = await Booking.findAll({
+      include: [
+        { model: Slot },
+        { model: Vehicle },
+        { model: require('../models/User'), attributes: ['id', 'name', 'email'] }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json({ count: bookings.length, bookings });
   } catch (err) {
     next(err);
   }

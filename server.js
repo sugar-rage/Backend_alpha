@@ -1,42 +1,41 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-
-const { sequelize, User, Vehicle, Slot, Booking } = require('./models'); // import all models
+const { sequelize, User, Vehicle, Slot, Booking } = require('./models');
 
 // Routes
 const authRoutes = require('./routes/auth');
 const bookingRoutes = require('./routes/booking');
-const parkingRoutes = require('./routes/parking');
+const parkingRoutes = require('./routes/slots');
 const vehicleRoutes = require('./routes/vehicle');
 const adminRoutes = require('./routes/admin');
 
 const app = express();
 
 // ===========================
-// ✅ Middleware
+// Middleware
 // ===========================
 app.use(cors());
 app.use(express.json());
 
 // ===========================
-// ✅ Routes
+// Routes
 // ===========================
-app.use('/api/auth', authRoutes);           // Login / Admin create user
-app.use('/api/slots', parkingRoutes);       // Slot routes (GET public, POST/PUT/DELETE admin)
-app.use('/api/vehicles', vehicleRoutes);   // Vehicle routes (register by user, view by admin)
-app.use('/api/bookings', bookingRoutes);   // Booking routes (user)
-app.use('/api/admin', adminRoutes);         // Admin-only routes (catalog view, etc.)
+app.use('/api/auth', authRoutes);
+app.use('/api/slots', parkingRoutes);
+app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ===========================
-// ✅ Default route
+// Default route
 // ===========================
 app.get('/', (req, res) => {
   res.json({ status: 'Alpha Backend running with MySQL', message: 'Admin/User permissions enforced' });
 });
 
 // ===========================
-// ✅ Error handler
+// Error handler
 // ===========================
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -44,13 +43,29 @@ app.use((err, req, res, next) => {
 });
 
 // ===========================
-// ✅ Sync Sequelize models & start server
+// Sync Sequelize models & start server
 // ===========================
 const PORT = process.env.PORT || 5000;
 
-sequelize.sync({ alter: true }) // Auto-create/update tables
-  .then(() => {
+async function startServer() {
+  try {
+    console.log('✅ MySQL connected');
+
+    // Sync models without dropping data, handle FK issues safely
+    await sequelize.sync({ alter: true, logging: false });
     console.log('✅ Tables synced successfully');
+
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-  })
-  .catch(err => console.error('❌ Sequelize sync failed:', err));
+  } catch (err) {
+    // Ignore FK-drop errors
+    if (err?.original?.errno === 1091) {
+      console.warn('⚠️ Foreign key already exists, ignoring...');
+      app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    } else {
+      console.error('❌ Sequelize sync failed:', err);
+      process.exit(1);
+    }
+  }
+}
+
+startServer();

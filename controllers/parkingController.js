@@ -1,6 +1,6 @@
 const Slot = require('../models/Slot');
 
-// GET /api/slots - Anyone (user/admin) can view
+// GET all slots (public)
 exports.getSlots = async (req, res, next) => {
   try {
     const slots = await Slot.findAll();
@@ -10,7 +10,7 @@ exports.getSlots = async (req, res, next) => {
   }
 };
 
-// GET /api/slots/:id - Anyone can view
+// GET single slot by ID (public)
 exports.getSlot = async (req, res, next) => {
   try {
     const slot = await Slot.findByPk(req.params.id);
@@ -21,7 +21,7 @@ exports.getSlot = async (req, res, next) => {
   }
 };
 
-// POST /api/slots - Only admin can create a new slot
+// POST new slot (admin only)
 exports.addSlot = async (req, res, next) => {
   try {
     if (!req.user || req.user.role !== 'admin') {
@@ -41,7 +41,7 @@ exports.addSlot = async (req, res, next) => {
   }
 };
 
-// PUT /api/slots/:id - Only admin can update
+// PUT slot (admin only)
 exports.updateSlot = async (req, res, next) => {
   try {
     if (!req.user || req.user.role !== 'admin') {
@@ -58,7 +58,7 @@ exports.updateSlot = async (req, res, next) => {
   }
 };
 
-// DELETE /api/slots/:id - Only admin can delete
+// DELETE slot (admin only)
 exports.deleteSlot = async (req, res, next) => {
   try {
     if (!req.user || req.user.role !== 'admin') {

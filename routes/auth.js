@@ -3,10 +3,10 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const authController = require('../controllers/authController');
 
-// Admin creates a user
+// Admin-only: create a new user
 router.post('/create-user', auth('admin'), authController.createUser);
 
-// Login route (both admin and user)
+// Login (any user or admin)
 router.post('/login', authController.login);
 
 module.exports = router;

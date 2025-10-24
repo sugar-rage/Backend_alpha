@@ -3,13 +3,13 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const vehicleController = require('../controllers/vehicleController');
 
-// Register a new vehicle (protected route)
-router.post('/register', auth, vehicleController.registerVehicle);
+// Register a vehicle (logged-in user)
+router.post('/register', auth(), vehicleController.registerVehicle);
 
-// Get all vehicles (optional: protected)
-router.get('/', vehicleController.getVehicles);
+// Get all vehicles (admin only)
+router.get('/', auth('admin'), vehicleController.getVehicles);
 
-// Get vehicle by ID
-router.get('/:id', vehicleController.getVehicleById);
+// Get vehicle by ID (admin or owner)
+router.get('/:id', auth(), vehicleController.getVehicleById);
 
 module.exports = router;
