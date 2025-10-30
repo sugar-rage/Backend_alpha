@@ -1518,16 +1518,25 @@
         function loadAdminCatalog() {
             const tbody = document.getElementById('catalogTableBody');
             tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+
             fetch(`${API_BASE_URL}/admin/catalog`, { headers: authHeaders() })
                 .then(res => res.json())
-                .then(users => {
+                .then(data => {
+                const users = data.catalog || []; // ✅ Backend sends 'catalog'
                 appState.users = users;
+
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5">No users found</td></tr>';
+                    return;
+                }
+
                 tbody.innerHTML = users.map(u => `
                     <tr>
-                    <td>${u.id}</td>
-                    <td>${u.username}</td>
-                    <td>${u.email}</td>
-                    <td>${u.role}</td>
+                    <td>${u.bookingId || '-'}</td>
+                    <td>${u.userName || '-'}</td>
+                    <td>${u.userEmail || '-'}</td>
+                    <td>${u.role || '-'}</td>
+                    <td>${u.plateNo || '-'}</td>
                     </tr>
                 `).join('');
                 })
@@ -1537,6 +1546,7 @@
                 showAlert('Error loading users', 'error');
                 });
             }
+
 
 
         function openCreateSlotModal() {
