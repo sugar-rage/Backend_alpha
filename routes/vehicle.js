@@ -12,4 +12,7 @@ router.get('/', auth('admin'), vehicleController.getVehicles);
 // Get vehicle by ID (admin or owner)
 router.get('/:id', auth(), vehicleController.getVehicleById);
 
+// Get all vehicles for logged-in user
+router.get('/myvehicles', auth(), vehicleController.getMyVehicles);
+
 module.exports = router;

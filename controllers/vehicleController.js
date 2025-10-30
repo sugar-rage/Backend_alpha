@@ -9,6 +9,8 @@ exports.registerVehicle = async (req, res, next) => {
 
     const existing = await Vehicle.findOne({ where: { plateNo } });
     if (existing) return res.status(400).json({ msg: 'Vehicle already registered' });
+    if (!plateNo || !type || !color)
+      return res.status(400).json({ message: 'plateNo, type, and color required' });
 
     const vehicle = await Vehicle.create({ plateNo, type, color, userId });
     res.status(201).json({ msg: 'Vehicle registered successfully', vehicle });
@@ -53,3 +55,21 @@ exports.getVehicleById = async (req, res, next) => {
     next(err);
   }
 };
+
+// Get vehicles for logged-in user
+exports.getMyVehicles = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const vehicles = await Vehicle.findAll({ where: { userId } });
+
+    if (!vehicles || vehicles.length === 0) {
+      return res.status(404).json({ msg: 'No vehicles found for this user' });
+    }
+
+    res.status(200).json(vehicles);
+  } catch (err) {
+    next(err);
+  }
+};
+
+

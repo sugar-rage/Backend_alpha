@@ -5,7 +5,7 @@ const User = require('../models/User');
 // =========================
 // Admin creates a new user
 // =========================
-exports.createUser = async (req, res, next) => {
+exports.register = async (req, res, next) => {
   try {
     // ✅ Only admin can create users
     if (!req.user || req.user.role !== 'admin') {
@@ -53,10 +53,12 @@ exports.login = async (req, res, next) => {
       return res.status(400).json({ message: 'Email and password required' });
 
     const user = await User.findOne({ where: { email: email.toLowerCase() } });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!user) return res.status(400).json({ message: 'Invalid 5 credentials' });
+    console.log("Password from Postman:", password);
+    console.log("Password from DB:", user.password);
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!isMatch) return res.status(400).json({ message: 'Invalid 6 credentials' });
 
     const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '7d'

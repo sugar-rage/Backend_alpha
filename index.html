@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxDrive - Smart Parking Management</title>
+    <style>
+        /* ============================================
+           DESIGN SYSTEM - CSS VARIABLES
+        ============================================ */
+        :root {
+            --color-primary: #d4af37;
+            --color-primary-90: #ddbf55;
+            --color-accent: #c9a030;
+            --color-success: #4caf50;
+            --color-error: #f44336;
+            --color-warning: #ff9800;
+            --color-available: #4caf50;
+            --color-reserved: #f44336;
+            --color-surface: #0a0a0a;
+            --color-surface-elevated: #1a1a1a;
+            --color-on-surface: #ffffff;
+            --color-on-surface-secondary: #b0b0b0;
+            --color-on-primary: #000000;
+            --color-border: #2a2a2a;
+            --color-outline: #3a3a3a;
+            --color-backplate: rgba(26, 26, 26, 0.95);
+            --color-scrim: rgba(0, 0, 0, 0.8);
+
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            --spacing-3xl: 4rem;
+
+            --border-radius-sm: 0.25rem;
+            --border-radius-md: 0.5rem;
+            --border-radius-lg: 1rem;
+            --shadow-level-1: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-level-2: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-level-3: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--color-surface);
+            color: var(--color-on-surface);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ============================================
+           BUTTONS
+        ============================================ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-90);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-level-2);
+        }
+
+        .btn-secondary {
+            background: var(--color-surface-elevated);
+            color: var(--color-on-surface);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--color-primary);
+        }
+
+        .btn-danger {
+            background: var(--color-error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .btn-success {
+            background: var(--color-success);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: var(--spacing-xs) var(--spacing-md);
+            font-size: 0.875rem;
+        }
+
+        /* ============================================
+           LOGIN PAGE
+        ============================================ */
+        #loginPage {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-xl);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+        }
+
+        .login-background {
+            position: absolute;
+            inset: 0;
+            background: url('https://images.pexels.com/photos/753876/pexels-photo-753876.jpeg?auto=compress&cs=tinysrgb&h=1080&w=1920') center/cover;
+            opacity: 0.15;
+            z-index: 0;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 900px;
+            background: var(--color-surface-elevated);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-level-3);
+            padding: var(--spacing-3xl);
+            border: 1px solid var(--color-border);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .login-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .login-logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--color-primary);
+            border-radius: var(--border-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-on-primary);
+        }
+
+        .login-logo-text {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-on-surface);
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .login-subtitle {
+            color: var(--color-on-surface-secondary);
+            font-size: 0.875rem;
+        }
+
+        .login-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .role-card {
+            background: var(--color-surface);
+            border: 2px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-xl);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .role-card:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-level-2);
+        }
+
+        .role-card.active {
+            border-color: var(--color-primary);
+            background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+        }
+
+        .role-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto var(--spacing-md);
+            background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+            border-radius: var(--border-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-primary);
+        }
+
+        .role-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .role-description {
+            font-size: 0.875rem;
+            color: var(--color-on-surface-secondary);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .form-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--color-on-surface);
+        }
+
+        .form-input {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--color-outline);
+            border-radius: var(--border-radius-sm);
+            background: var(--color-surface);
+            color: var(--color-on-surface);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+        }
+
+        /* ============================================
+           DASHBOARD LAYOUT
+        ============================================ */
+        .dashboard {
+            min-height: 100vh;
+            display: flex;
+            background: var(--color-surface);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--color-surface-elevated);
+            border-right: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: var(--spacing-xl);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .sidebar-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--color-primary);
+            border-radius: var(--border-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-on-primary);
+        }
+
+        .sidebar-logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-surface);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--color-border);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--color-on-surface-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .user-name {
+            font-weight: 600;
+            margin-top: var(--spacing-xs);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: var(--spacing-md);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            color: var(--color-on-surface-secondary);
+            text-decoration: none;
+            border-radius: var(--border-radius-sm);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--color-surface);
+            color: var(--color-primary);
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-footer {
+            padding: var(--spacing-md);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: var(--spacing-xl);
+        }
+
+        .page-header {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .page-description {
+            color: var(--color-on-surface-secondary);
+        }
+
+        /* ============================================
+           PARKING SLOTS
+        ============================================ */
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-xl);
+        }
+
+        .slot-card {
+            background: var(--color-surface-elevated);
+            border: 2px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .slot-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-level-2);
+        }
+
+        .slot-card.available {
+            border-color: var(--color-available);
+        }
+
+        .slot-card.reserved {
+            border-color: var(--color-reserved);
+            opacity: 0.7;
+        }
+
+        .slot-status {
+            position: absolute;
+            top: var(--spacing-sm);
+            right: var(--spacing-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .slot-status.available {
+            background: var(--color-available);
+            color: white;
+        }
+
+        .slot-status.reserved {
+            background: var(--color-reserved);
+            color: white;
+        }
+
+        .slot-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .slot-info {
+            font-size: 0.875rem;
+            color: var(--color-on-surface-secondary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        /* ============================================
+           MODAL
+        ============================================ */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: var(--color-scrim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: var(--spacing-xl);
+        }
+
+        .modal-content {
+            background: var(--color-surface-elevated);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-level-3);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--color-border);
+        }
+
+        .modal-header {
+            padding: var(--spacing-xl);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--color-on-surface-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: var(--spacing-xs);
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: var(--spacing-xl);
+        }
+
+        .modal-footer {
+            padding: var(--spacing-xl);
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+        }
+
+        /* ============================================
+           TABLE
+        ============================================ */
+        .table-container {
+            background: var(--color-surface-elevated);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-border);
+            overflow: hidden;
+            margin-top: var(--spacing-xl);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--color-surface);
+        }
+
+        th {
+            padding: var(--spacing-md);
+            text-align: left;
+            font-weight: 600;
+            color: var(--color-on-surface);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        td {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-on-surface-secondary);
+        }
+
+        tbody tr:hover {
+            background: var(--color-surface);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ============================================
+           ALERTS
+        ============================================ */
+        .alert {
+            position: fixed;
+            top: var(--spacing-xl);
+            right: var(--spacing-xl);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-level-3);
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .alert-success {
+            background: var(--color-success);
+            color: white;
+        }
+
+        .alert-error {
+            background: var(--color-error);
+            color: white;
+        }
+
+        /* ============================================
+           RESPONSIVE
+        ============================================ */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .login-options {
+                grid-template-columns: 1fr;
+            }
+
+            .slots-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-3xl);
+            color: var(--color-on-surface-secondary);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: var(--spacing-md);
+            opacity: 0.3;
+        }
+
+        .actions-toolbar {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .card {
+            background: var(--color-surface-elevated);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+        }
+
+        .vehicle-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .vehicle-info h4 {
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .vehicle-details {
+            font-size: 0.875rem;
+            color: var(--color-on-surface-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN PAGE -->
+    <div id="loginPage">
+        <div class="login-background"></div>
+        <div class="login-container">
+            <div class="login-header">
+                <div class="login-logo">
+                    <div class="login-logo-icon">L</div>
+                    <span class="login-logo-text">LuxDrive</span>
+                </div>
+                <h1 class="login-title">Smart Parking Management</h1>
+                <p class="login-subtitle">Choose your role to access the system</p>
+            </div>
+
+            <div class="login-options">
+                <div class="role-card" data-role="admin">
+                    <div class="role-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" stroke="currentColor" stroke-width="2" d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                    </div>
+                    <h3 class="role-title">Admin</h3>
+                    <p class="role-description">Full control: slots, users & catalog</p>
+                </div>
+                <div class="role-card" data-role="user">
+                    <div class="role-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></g></svg>
+                    </div>
+                    <h3 class="role-title">User</h3>
+                    <p class="role-description">View slots, book parking & manage vehicles</p>
+                </div>
+            </div>
+
+            <form class="login-form hidden" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4m-5-4l5-5l-5-5m5 5H3"/></svg>
+                    Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- USER DASHBOARD -->
+    <div id="userDashboard" class="dashboard hidden">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">L</div>
+                    <span class="sidebar-logo-text">LuxDrive</span>
+                </div>
+                <div class="user-info">
+                    <div class="user-role">User</div>
+                    <div class="user-name" id="userName"></div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-item active" data-view="slots">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+                    Available Slots
+                </a>
+                <a class="nav-item" data-view="bookings">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+                    My Bookings
+                </a>
+                <a class="nav-item" data-view="vehicles">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M5 17a2 2 0 1 0 4 0a2 2 0 1 0-4 0m10 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M5 17H3v-6l2-5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0H9m-5-7h9m-7 3h4"/></svg>
+                    My Vehicles
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary" style="width: 100%;" onclick="logout()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5l-5-5m5 5H9"/></svg>
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Slots View -->
+            <div id="slotsView">
+                <div class="page-header">
+                    <h1 class="page-title">Available Parking Slots</h1>
+                    <p class="page-description">Select an available slot to book your parking</p>
+                </div>
+                <div class="slots-grid" id="userSlotsGrid"></div>
+            </div>
+
+            <!-- Bookings View -->
+            <div id="bookingsView" class="hidden">
+                <div class="page-header">
+                    <h1 class="page-title">My Bookings</h1>
+                    <p class="page-description">Manage your current and past parking bookings</p>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Slot Number</th>
+                                <th>Vehicle</th>
+                                <th>Booked Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vehicles View -->
+            <div id="vehiclesView" class="hidden">
+                <div class="page-header">
+                    <h1 class="page-title">My Vehicles</h1>
+                    <p class="page-description">Manage your registered vehicles</p>
+                </div>
+                <div class="actions-toolbar">
+                    <button class="btn btn-primary" onclick="openAddVehicleModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 5v14m-7-7h14"/></svg>
+                        Add Vehicle
+                    </button>
+                </div>
+                <div id="vehiclesList"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ADMIN DASHBOARD -->
+    <div id="adminDashboard" class="dashboard hidden">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">L</div>
+                    <span class="sidebar-logo-text">LuxDrive</span>
+                </div>
+                <div class="user-info">
+                    <div class="user-role">Administrator</div>
+                    <div class="user-name" id="adminName">Admin User</div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-item active" data-view="admin-slots">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+                    Manage Slots
+                </a>
+                <a class="nav-item" data-view="admin-users">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2m14-8a4 4 0 1 0 0-8a4 4 0 0 0 0 8zm6 8v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Create Users
+                </a>
+                <a class="nav-item" data-view="admin-catalog">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2m1 0h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/></svg>
+                    User Catalog
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary" style="width: 100%;" onclick="logout()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5l-5-5m5 5H9"/></svg>
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Admin Slots View -->
+            <div id="adminSlotsView">
+                <div class="page-header">
+                    <h1 class="page-title">Manage Parking Slots</h1>
+                    <p class="page-description">Create, update, and delete parking slots</p>
+                </div>
+                <div class="actions-toolbar">
+                    <button class="btn btn-primary" onclick="openCreateSlotModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 5v14m-7-7h14"/></svg>
+                        Create New Slot
+                    </button>
+                </div>
+                <div class="slots-grid" id="adminSlotsGrid"></div>
+            </div>
+
+            <!-- Admin Users View -->
+            <div id="adminUsersView" class="hidden">
+                <div class="page-header">
+                    <h1 class="page-title">Create New User</h1>
+                    <p class="page-description">Add new users to the parking system</p>
+                </div>
+                <div class="card" style="max-width: 600px;">
+                    <form id="createUserForm">
+                        <div class="form-group">
+                            <label class="form-label" for="newUsername">Username</label>
+                            <input type="text" id="newUsername" class="form-input" placeholder="Enter username" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="newPassword">Password</label>
+                            <input type="password" id="newPassword" class="form-input" placeholder="Enter password" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="newEmail">Email</label>
+                            <input type="email" id="newEmail" class="form-input" placeholder="Enter email" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2m7-10a4 4 0 1 0 0-8a4 4 0 0 0 0 8z"/></svg>
+                            Create User
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Admin Catalog View -->
+            <div id="adminCatalogView" class="hidden">
+                <div class="page-header">
+                    <h1 class="page-title">User Catalog</h1>
+                    <p class="page-description">View all users and their registered vehicles</p>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Vehicles</th>
+                                <th>Active Bookings</th>
+                                <th>Joined Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="catalogTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Book Slot Modal -->
+    <div id="bookSlotModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Book Parking Slot</h2>
+                <button class="modal-close" onclick="closeModal('bookSlotModal')">&times;</button>
+            </div>
+            <form id="bookSlotForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Slot Number</label>
+                        <input type="text" id="bookSlotNumber" class="form-input" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="bookVehicle">Select Vehicle</label>
+                        <select id="bookVehicle" class="form-input" required>
+                            <option value="">Choose a vehicle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="bookDate">Booking Date</label>
+                        <input type="date" id="bookDate" class="form-input" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('bookSlotModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Vehicle Modal -->
+    <div id="addVehicleModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Vehicle</h2>
+                <button class="modal-close" onclick="closeModal('addVehicleModal')">&times;</button>
+            </div>
+            <form id="addVehicleForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="vehicleMake">Make</label>
+                        <input type="text" id="vehicleMake" class="form-input" placeholder="e.g., Toyota" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="vehicleModel">Model</label>
+                        <input type="text" id="vehicleModel" class="form-input" placeholder="e.g., Camry" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="vehicleYear">Year</label>
+                        <input type="number" id="vehicleYear" class="form-input" placeholder="e.g., 2023" min="1900" max="2025" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="vehiclePlate">License Plate</label>
+                        <input type="text" id="vehiclePlate" class="form-input" placeholder="e.g., ABC-1234" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addVehicleModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Vehicle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Slot Modal -->
+    <div id="createSlotModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Parking Slot</h2>
+                <button class="modal-close" onclick="closeModal('createSlotModal')">&times;</button>
+            </div>
+            <form id="createSlotForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="slotNumber">Slot Number</label>
+                        <input type="text" id="slotNumber" class="form-input" placeholder="e.g., A-101" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="slotLocation">Location</label>
+                        <input type="text" id="slotLocation" class="form-input" placeholder="e.g., Ground Floor, Section A" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="slotType">Slot Type</label>
+                        <select id="slotType" class="form-input" required>
+                            <option value="standard">Standard</option>
+                            <option value="compact">Compact</option>
+                            <option value="large">Large</option>
+                            <option value="electric">Electric Vehicle</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createSlotModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Slot</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Slot Modal -->
+    <div id="editSlotModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Parking Slot</h2>
+                <button class="modal-close" onclick="closeModal('editSlotModal')">&times;</button>
+            </div>
+            <form id="editSlotForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editSlotId">
+                    <div class="form-group">
+                        <label class="form-label" for="editSlotNumber">Slot Number</label>
+                        <input type="text" id="editSlotNumber" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editSlotLocation">Location</label>
+                        <input type="text" id="editSlotLocation" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editSlotType">Slot Type</label>
+                        <select id="editSlotType" class="form-input" required>
+                            <option value="standard">Standard</option>
+                            <option value="compact">Compact</option>
+                            <option value="large">Large</option>
+                            <option value="electric">Electric Vehicle</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editSlotModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Slot</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+        // API base
+        const API_BASE_URL = "http://localhost:5000/api";
+
+        // helper: get auth headers
+        function authHeaders(extra = {}) {
+        const token = localStorage.getItem('authToken');
+        const headers = {
+            "Content-Type": "application/json",
+            ...extra
+        };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        return headers;
+        }
+        const appState = {
+            currentUser: null,
+            currentRole: null,
+            selectedRole: 'user',
+            slots: [],
+            bookings: [],
+            vehicles: [],
+            users: []
+        };
+        // helper: handle JSON responses (simple)
+        async function fetchJson(url, options = {}) {
+        const res = await fetch(url, options);
+        if (!res.ok) {
+            let msg = `${res.status} ${res.statusText}`;
+            try { 
+            const err = await res.json(); 
+            if (err.message) msg = err.message; 
+            } catch(e) {}
+            throw new Error(msg);
+        }
+        return res.status === 204 ? null : res.json();
+        }
+
+
+       // ===========================
+        // Function to show login form after selecting role
+        // ===========================
+        function showLogin() {
+        // Hide the role selection cards
+        document.querySelector('.login-options').classList.add('hidden');
+
+        // Show the email/password form
+        document.querySelector('.login-form').classList.remove('hidden');
+        }
+        // ===========================
+        // Role Selection Cards Click
+        // ===========================
+        document.querySelectorAll('.role-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const role = card.dataset.role; // "admin" or "user"
+            appState.selectedRole = role;
+            showLogin();
+        });
+        });
+        
+        function logout() {
+        // Clear local storage
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('username');
+
+        // Reset app state
+        appState.currentUser = null;
+        appState.currentRole = null;
+        appState.selectedRole = null;
+
+        // Hide dashboards
+        document.getElementById('adminDashboard').classList.add('hidden');
+        document.getElementById('userDashboard').classList.add('hidden');
+
+        // Hide the login form and show role selection again
+        document.querySelector('.login-form').classList.add('hidden');
+        document.querySelector('.login-options').classList.remove('hidden');
+
+        // Show loginPage again
+        document.getElementById('loginPage').classList.remove('hidden');
+
+        showAlert('Logged out successfully!', 'success');
+        }
+
+
+        // ===========================
+        // Load Admin Slots
+        // ===========================
+        function loadAdminSlots() {
+        const grid = document.getElementById('adminSlotsGrid');
+        grid.innerHTML = '<p>Loading slots...</p>';
+
+        fetch(`${API_BASE_URL}/slots`, { headers: authHeaders() })
+            .then(res => {
+            if (!res.ok) return res.json().then(j => Promise.reject(j));
+            return res.json();
+            })
+            .then(slots => {
+            appState.slots = slots;
+            if (!slots.length) {
+                grid.innerHTML = '<p>No slots available</p>';
+                return;
+            }
+
+            // Render each slot card
+            grid.innerHTML = slots.map(slot => `
+                <div class="slot-card">
+                <h3>${slot.number}</h3>
+                <p>Location: ${slot.location}</p>
+                <p>Type: ${slot.type}</p>
+                <button class="btn btn-secondary" onclick="openEditSlotModal(${slot.id})">Edit</button>
+                <button class="btn btn-danger" onclick="deleteSlot(${slot.id})">Delete</button>
+                </div>
+            `).join('');
+            })
+            .catch(err => {
+            console.error("Error loading slots:", err);
+            showAlert(err.message || 'Error loading slots', 'error');
+            });
+        }
+
+
+        
+
+        // ============================================
+        // LOGIN FUNCTIONALITY
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+        const appState = {
+            currentUser: null,
+            currentRole: null,
+            selectedRole: 'user',
+            slots: [],
+            bookings: [],
+            vehicles: [],
+            users: []
+        };
+        // ===========================
+        // Role Selection Buttons
+        // ===========================
+
+        // ===========================
+        // Role Selection Cards
+        // ===========================
+        document.querySelectorAll('.role-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const role = card.dataset.role; // "admin" or "user"
+            appState.selectedRole = role;
+            showLogin(); // show login form section
+        });
+        });
+
+
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!appState.selectedRole) {
+                showAlert('Please select Admin or User before logging in', 'error');
+                return;
+            }
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // 🔽 paste your fetch block here
+            fetch(`${API_BASE_URL}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+            })
+            .then(res => res.json())
+            .then(data => {
+            if (data && data.token) {
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('userRole', appState.selectedRole);
+                localStorage.setItem('username', data.user?.username || email);
+                appState.currentUser = data.user?.username || email;
+                appState.currentRole = appState.selectedRole;
+
+                document.getElementById('loginPage').classList.add('hidden');
+                if (appState.selectedRole === 'admin') {
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                loadAdminSlots();
+                } else {
+                document.getElementById('userDashboard').classList.remove('hidden');
+                loadUserSlots();
+                }
+                showAlert('Login successful!', 'success');
+            } else {
+                showAlert(data.message || 'Invalid credentials', 'error');
+            }
+            })
+            .catch(err => {
+            console.error("Login error:", err);
+            showAlert('Error connecting to backend', 'error');
+            });
+        });
+
+        // Navigation setup after this...
+        setupNavigation();
+        });
+
+        
+
+        function setupNavigation() {
+            // User dashboard navigation
+            document.querySelectorAll('#userDashboard .nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('#userDashboard .nav-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const view = this.dataset.view;
+                    document.querySelectorAll('#userDashboard .main-content > div').forEach(v => v.classList.add('hidden'));
+
+                    if (view === 'slots') {
+                        document.getElementById('slotsView').classList.remove('hidden');
+                        loadUserSlots();
+                    } else if (view === 'bookings') {
+                        document.getElementById('bookingsView').classList.remove('hidden');
+                        loadUserBookings();
+                    } else if (view === 'vehicles') {
+                        document.getElementById('vehiclesView').classList.remove('hidden');
+                        loadUserVehicles();
+                    }
+                });
+            });
+
+            // Admin dashboard navigation
+            document.querySelectorAll('#adminDashboard .nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('#adminDashboard .nav-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const view = this.dataset.view;
+                    document.querySelectorAll('#adminDashboard .main-content > div').forEach(v => v.classList.add('hidden'));
+
+                    if (view === 'admin-slots') {
+                        document.getElementById('adminSlotsView').classList.remove('hidden');
+                        loadAdminSlots();
+                    } else if (view === 'admin-users') {
+                        document.getElementById('adminUsersView').classList.remove('hidden');
+                    } else if (view === 'admin-catalog') {
+                        document.getElementById('adminCatalogView').classList.remove('hidden');
+                        loadAdminCatalog();
+                    }
+                });
+            });
+        }
+
+        // ============================================
+        // USER FUNCTIONS
+        // ============================================
+        function loadUserSlots() {
+            const grid = document.getElementById('userSlotsGrid');
+            grid.innerHTML = '<div class="empty-state"><p>Loading...</p></div>';
+
+            fetch(`${API_BASE_URL}/slots`, { headers: authHeaders() })
+                .then(res => res.json())
+                .then(slots => {
+                appState.slots = slots;
+                const availableSlots = slots;
+                if (availableSlots.length === 0) {
+                    grid.innerHTML = '<div class="empty-state"><p>No available slots at the moment</p></div>';
+                    return;
+                }
+                grid.innerHTML = availableSlots.map(slot => `
+                    <div class="slot-card available">
+                    <div class="slot-status available">Available</div>
+                    <div class="slot-number">${slot.number}</div>
+                    <div class="slot-info">${slot.location}</div>
+                    <div class="slot-info" style="text-transform: capitalize; color: var(--color-primary);">${slot.type}</div>
+                    <button class="btn btn-primary btn-sm" style="width: 100%;" onclick="openBookSlotModal(${slot.id})">Book Now</button>
+                    </div>`).join('');
+                })
+                .catch(err => {
+                console.error("Load slots error:", err);
+                grid.innerHTML = '<div class="empty-state"><p>Error loading slots</p></div>';
+                showAlert('Error loading slots', 'error');
+                });
+        }
+
+
+        function loadUserBookings() {
+            const tbody = document.getElementById('bookingsTableBody');
+            tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+
+            fetch(`${API_BASE_URL}/bookings/me`, { headers: authHeaders() })
+                .then(res => res.json())
+                .then(bookings => {
+                appState.bookings = bookings;
+                if (bookings.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:3rem;">No bookings found</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = bookings.map(booking => {
+                    const slot = booking.slot; // expect server to populate slot and vehicle
+                    const vehicle = booking.vehicle;
+                    return `
+                    <tr>
+                        <td><strong>${slot.number}</strong></td>
+                        <td>${vehicle.make} ${vehicle.model} (${vehicle.plate})</td>
+                        <td>${booking.date}</td>
+                        <td><span class="slot-status ${booking.status}">${booking.status}</span></td>
+                        <td>
+                        <button class="btn btn-danger btn-sm" onclick="cancelBooking('${booking.id}')">Cancel</button>
+                        </td>
+                    </tr>`;
+                }).join('');
+                })
+                .catch(err => {
+                console.error("Load bookings error:", err);
+                tbody.innerHTML = '<tr><td colspan="5">Error loading bookings</td></tr>';
+                showAlert('Error loading bookings', 'error');
+                });
+        }
+
+
+        function loadUserVehicles() {
+            const container = document.getElementById('vehiclesList');
+            container.innerHTML = '<div class="empty-state"><p>Loading...</p></div>';
+
+            fetch(`${API_BASE_URL}/vehicles`, { headers: authHeaders() })
+                .then(res => res.json())
+                .then(vehicles => {
+                appState.vehicles = vehicles;
+                if (vehicles.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No vehicles registered yet</p></div>';
+                    return;
+                }
+                container.innerHTML = vehicles.map(vehicle => `
+                    <div class="card vehicle-card">
+                    <div class="vehicle-info">
+                        <h4>${vehicle.make} ${vehicle.model}</h4>
+                        <div class="vehicle-details">Year: ${vehicle.year} | Plate: ${vehicle.plate}</div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="deleteVehicle(${vehicle.id})">Remove</button>
+                    </div>`).join('');
+                })
+                .catch(err => {
+                console.error("Load vehicles error:", err);
+                container.innerHTML = '<div class="empty-state"><p>Error loading vehicles</p></div>';
+                showAlert('Error loading vehicles', 'error');
+                });
+        }
+
+
+        function openBookSlotModal(slotId) {
+            const slot = appState.slots.find(s => s.id === slotId);
+            document.getElementById('bookSlotNumber').value = slot.number;
+            document.getElementById('bookSlotModal').dataset.slotId = slotId;
+
+            // Populate vehicles dropdown
+            const select = document.getElementById('bookVehicle');
+            select.innerHTML = '<option value="">Choose a vehicle</option>' +
+            appState.vehicles.map(v =>
+                `<option value="${v.id}">${v.make} ${v.model} (${v.plate})</option>`
+            ).join('');
+
+            openModal('bookSlotModal');
+        }
+
+       document.getElementById('bookSlotForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const slotId = parseInt(document.getElementById('bookSlotModal').dataset.slotId);
+        const vehicleId = parseInt(document.getElementById('bookVehicle').value);
+        const date = document.getElementById('bookDate').value;
+
+        fetch(`${API_BASE_URL}/bookings`, {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ slotId, vehicleId, date })
+        })
+        .then(res => {
+            if (!res.ok) return res.json().then(j => Promise.reject(j));
+            return res.json();
+        })
+        .then(data => {
+            closeModal('bookSlotModal');
+            showAlert('Slot booked successfully!', 'success');
+            loadUserSlots();
+            loadUserBookings();
+        })
+        .catch(err => {
+            console.error("Booking error:", err);
+            showAlert(err.message || 'Error booking slot', 'error');
+        });
+        });
+
+
+        function cancelBooking(bookingId) {
+            if (!confirm('Are you sure you want to cancel this booking?')) return;
+
+            fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+                method: "DELETE",
+                headers: authHeaders()
+            })
+            .then(res => {
+                if (!res.ok) return res.json().then(j => Promise.reject(j));
+                showAlert('Booking cancelled successfully!', 'success');
+                loadUserBookings();
+                loadUserSlots();
+            })
+            .catch(err => {
+                console.error("Cancel booking error:", err);
+                showAlert(err.message || 'Error cancelling booking', 'error');
+            });
+        }
+
+
+        function openAddVehicleModal() {
+            openModal('addVehicleModal');
+        }
+
+        document.getElementById('addVehicleForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const payload = {
+            make: document.getElementById('vehicleMake').value,
+            model: document.getElementById('vehicleModel').value,
+            year: parseInt(document.getElementById('vehicleYear').value),
+            plate: document.getElementById('vehiclePlate').value
+        };
+        fetch(`${API_BASE_URL}/vehicles`, {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(vehicle => {
+            closeModal('addVehicleModal');
+            showAlert('Vehicle added successfully!', 'success');
+            loadUserVehicles();
+            this.reset();
+        })
+        .catch(err => {
+            console.error("Add vehicle error:", err);
+            showAlert('Error adding vehicle', 'error');
+        });
+        });
+
+
+        function deleteVehicle(vehicleId) {
+            if (!confirm('Are you sure you want to remove this vehicle?')) return;
+            fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
+                method: "DELETE",
+                headers: authHeaders()
+            })
+            .then(res => {
+                if (!res.ok) return res.json().then(j => Promise.reject(j));
+                showAlert('Vehicle removed successfully!', 'success');
+                loadUserVehicles();
+            })
+            .catch(err => {
+                console.error("Delete vehicle error:", err);
+                showAlert(err.message || 'Error removing vehicle', 'error');
+            });
+        }
+
+
+        // ============================================
+        // ADMIN FUNCTIONS
+        // ============================================
+        function loadAdminCatalog() {
+            const tbody = document.getElementById('catalogTableBody');
+            tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+            fetch(`${API_BASE_URL}/admin/catalog`, { headers: authHeaders() })
+                .then(res => res.json())
+                .then(users => {
+                appState.users = users;
+                tbody.innerHTML = users.map(u => `
+                    <tr>
+                    <td>${u.id}</td>
+                    <td>${u.username}</td>
+                    <td>${u.email}</td>
+                    <td>${u.role}</td>
+                    </tr>
+                `).join('');
+                })
+                .catch(err => {
+                console.error("Load users error:", err);
+                tbody.innerHTML = '<tr><td colspan="5">Error loading users</td></tr>';
+                showAlert('Error loading users', 'error');
+                });
+            }
+
+
+        function openCreateSlotModal() {
+            openModal('createSlotModal');
+        }
+
+       document.getElementById('createSlotForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const payload = {
+            number: document.getElementById('slotNumber').value,
+            location: document.getElementById('slotLocation').value,
+            type: document.getElementById('slotType').value
+        };
+        fetch(`${API_BASE_URL}/slots`, {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(slot => {
+            closeModal('createSlotModal');
+            showAlert('Slot created successfully!', 'success');
+            loadAdminSlots();
+            this.reset();
+        })
+        .catch(err => {
+            console.error("Create slot error:", err);
+            showAlert('Error creating slot', 'error');
+        });
+        });
+
+
+        function openEditSlotModal(slotId) {
+            fetch(`${API_BASE_URL}/slots/${slotId}`, { headers: authHeaders() })
+                .then(res => res.json())
+                .then(slot => {
+                document.getElementById('editSlotModal').dataset.slotId = slot.id;
+                document.getElementById('editSlotNumber').value = slot.number;
+                document.getElementById('editSlotLocation').value = slot.location;
+                document.getElementById('editSlotType').value = slot.type;
+                openModal('editSlotModal');
+                })
+                .catch(err => {
+                console.error("Load slot for edit error:", err);
+                showAlert('Error loading slot details', 'error');
+                });
+            }
+
+        document.getElementById('createUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const payload = {
+            username: document.getElementById('newUsername').value,
+            password: document.getElementById('newPassword').value,
+            email: document.getElementById('newEmail').value
+        };
+
+        fetch(`${API_BASE_URL}/admin/users`, {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (!res.ok) return res.json().then(j => Promise.reject(j));
+            return res.json();
+        })
+        .then(user => {
+            showAlert('User created successfully!', 'success');
+            this.reset();
+            loadAdminCatalog(); // 
+        })
+        .catch(err => {
+            console.error("Create user error:", err);
+            showAlert(err.message || 'Error creating user', 'error');
+        });
+        });
+
+       // ============================================
+        // ADMIN EDIT SLOT (PUT)
+        // ============================================
+        document.getElementById('editSlotForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const slotId = parseInt(document.getElementById('editSlotModal').dataset.slotId);
+        const updatedSlot = {
+            number: document.getElementById('editSlotNumber').value,
+            location: document.getElementById('editSlotLocation').value,
+            type: document.getElementById('editSlotType').value
+        };
+
+        fetch(`${API_BASE_URL}/slots/${slotId}`, {
+            method: "PUT",
+            headers: authHeaders(),
+            body: JSON.stringify(updatedSlot)
+        })
+        .then(res => {
+            if (!res.ok) return res.json().then(j => Promise.reject(j));
+            return res.json();
+        })
+        .then(data => {
+            closeModal('editSlotModal');
+            showAlert('Slot updated successfully!', 'success');
+            loadAdminSlots(); // Refresh list
+        })
+        .catch(err => {
+            console.error("Edit slot error:", err);
+            showAlert(err.message || 'Error updating slot', 'error');
+        });
+        });
+
+
+        function deleteSlot(slotId) {
+            if (!confirm('Are you sure you want to delete this slot?')) return;
+
+            fetch(`${API_BASE_URL}/slots/${slotId}`, {
+                method: "DELETE",
+                headers: authHeaders()
+            })
+            .then(res => {
+                if (!res.ok) return res.json().then(j => Promise.reject(j));
+                showAlert('Slot deleted successfully!', 'success');
+                loadAdminSlots(); // Refresh list
+            })
+            .catch(err => {
+                console.error("Delete slot error:", err);
+                showAlert(err.message || 'Error deleting slot', 'error');
+            });
+            }
+
+
+       
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            document.body.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('username');
+                appState.currentUser = null;
+                appState.currentRole = null;
+
+                document.getElementById('userDashboard').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.add('hidden');
+                document.getElementById('loginPage').classList.remove('hidden');
+                document.getElementById('loginForm').reset();
+                document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+                document.querySelector('.role-card[data-role="user"]').classList.add('active');
+
+                showAlert('Logged out successfully!', 'success');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+        });
+       
+
+    </script>
+</body>
+</html>

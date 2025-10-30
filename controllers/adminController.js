@@ -8,17 +8,16 @@ exports.getCatalog = async (req, res, next) => {
     }
 
     const catalog = await Booking.findAll({
-      attributes: ['id', 'startTime', 'endTime', 'status', 'createdAt'],
       include: [
-        { model: User, attributes: ['id', 'name', 'email', 'contact', 'role'] },
-        { model: Vehicle, attributes: ['id', 'plateNo', 'type', 'color'] },
-        { model: Slot, attributes: ['id', 'label', 'lotName', 'level', 'hourlyRate', 'status'] }
-      ],
-      order: [['createdAt', 'DESC']]
+        { model: User },
+        { model: Vehicle },
+        { model: Slot }
+      ]
     });
 
-    res.json({ message: 'Admin catalog fetched successfully', count: catalog.length, catalog });
+    res.json(catalog);
   } catch (err) {
-    next(err);
+    console.error("Error fetching catalog:", err);
+    res.status(500).json({ message: 'Error fetching catalog', error: err.message });
   }
 };
