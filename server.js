@@ -82,7 +82,7 @@ const PORT = process.env.PORT || 5000;
 async function startServer() {
   try {
     console.log('✅ Connecting to MySQL...');
-    await sequelize.sync({ alter: true, logging: false });
+    await sequelize.sync();
     console.log('✅ Tables synced successfully');
 
     app.listen(PORT, () =>

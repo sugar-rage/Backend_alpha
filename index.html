@@ -998,6 +998,10 @@
                         <input type="text" id="slotLocation" class="form-input" placeholder="e.g., Ground Floor, Section A" required>
                     </div>
                     <div class="form-group">
+                        <label class="form-label" for="slotHourly">hourlyRate</label>
+                        <input type="text" id="slotHourly" class="form-input" required>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label" for="slotType">Slot Type</label>
                         <select id="slotType" class="form-input" required>
                             <option value="standard">Standard</option>
@@ -1015,41 +1019,56 @@
         </div>
     </div>
 
-    <!-- Edit Slot Modal -->
+    <!-- ✅ Edit Slot Modal -->
     <div id="editSlotModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Edit Parking Slot</h2>
-                <button class="modal-close" onclick="closeModal('editSlotModal')">&times;</button>
-            </div>
-            <form id="editSlotForm">
-                <div class="modal-body">
-                    <input type="hidden" id="editSlotId">
-                    <div class="form-group">
-                        <label class="form-label" for="editSlotNumber">Slot Number</label>
-                        <input type="text" id="editSlotNumber" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="editSlotLocation">Location</label>
-                        <input type="text" id="editSlotLocation" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="editSlotType">Slot Type</label>
-                        <select id="editSlotType" class="form-input" required>
-                            <option value="standard">Standard</option>
-                            <option value="compact">Compact</option>
-                            <option value="large">Large</option>
-                            <option value="electric">Electric Vehicle</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('editSlotModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Slot</button>
-                </div>
-            </form>
+    <div class="modal-content">
+        <div class="modal-header">
+        <h2 class="modal-title">Edit Parking Slot</h2>
+        <button class="modal-close" onclick="closeModal('editSlotModal')">&times;</button>
         </div>
+
+        <form id="editSlotForm">
+        <div class="modal-body">
+            <input type="hidden" id="editSlotId">
+
+            <div class="form-group">
+            <label class="form-label" for="editSlotLabel">Slot Label</label>
+            <input type="text" id="editSlotLabel" class="form-input" placeholder="e.g. A1" required>
+            </div>
+
+            <div class="form-group">
+            <label class="form-label" for="editSlotLotName">Lot Name</label>
+            <input type="text" id="editSlotLotName" class="form-input" placeholder="e.g. Ground Floor" required>
+            </div>
+
+            <div class="form-group">
+            <label class="form-label" for="editSlotLevel">Level</label>
+            <input type="number" id="editSlotLevel" class="form-input" placeholder="e.g. 0" required>
+            </div>
+
+            <div class="form-group">
+            <label class="form-label" for="editSlotRate">Hourly Rate</label>
+            <input type="number" id="editSlotRate" class="form-input" placeholder="e.g. 50" required>
+            </div>
+
+            <div class="form-group">
+            <label class="form-label" for="editSlotStatus">Status</label>
+            <select id="editSlotStatus" class="form-input" required>
+                <option value="Available">Available</option>
+                <option value="Reserved">Reserved</option>
+                <option value="Occupied">Occupied</option>
+            </select>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('editSlotModal')">Cancel</button>
+            <button type="submit" class="btn btn-primary">Update Slot</button>
+        </div>
+        </form>
     </div>
+    </div>
+
 
     <script>
         // ============================================
@@ -1098,6 +1117,8 @@
         function showLogin() {
         // Hide the role selection cards
         document.querySelector('.login-options').classList.add('hidden');
+        const form = document.getElementById('loginForm');
+        form.reset();
 
         // Show the email/password form
         document.querySelector('.login-form').classList.remove('hidden');
@@ -1161,9 +1182,10 @@
             // Render each slot card
             grid.innerHTML = slots.map(slot => `
                 <div class="slot-card">
-                <h3>${slot.number}</h3>
-                <p>Location: ${slot.location}</p>
-                <p>Type: ${slot.type}</p>
+                <h3>${slot.label}</h3>
+                <p>Location: ${slot.lotName}</p>
+                <p>Level: ${slot.level}</p>
+
                 <button class="btn btn-secondary" onclick="openEditSlotModal(${slot.id})">Edit</button>
                 <button class="btn btn-danger" onclick="deleteSlot(${slot.id})">Delete</button>
                 </div>
@@ -1182,15 +1204,7 @@
         // LOGIN FUNCTIONALITY
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
-        const appState = {
-            currentUser: null,
-            currentRole: null,
-            selectedRole: 'user',
-            slots: [],
-            bookings: [],
-            vehicles: [],
-            users: []
-        };
+
         // ===========================
         // Role Selection Buttons
         // ===========================
@@ -1208,49 +1222,52 @@
 
 
         // Login form
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+
             if (!appState.selectedRole) {
                 showAlert('Please select Admin or User before logging in', 'error');
                 return;
             }
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
 
-            // 🔽 paste your fetch block here
-            fetch(`${API_BASE_URL}/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-            })
-            .then(res => res.json())
-            .then(data => {
-            if (data && data.token) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message || 'Invalid credentials');
+
+                // ✅ Save user info
                 localStorage.setItem('authToken', data.token);
-                localStorage.setItem('userRole', appState.selectedRole);
-                localStorage.setItem('username', data.user?.username || email);
-                appState.currentUser = data.user?.username || email;
-                appState.currentRole = appState.selectedRole;
+                localStorage.setItem('userRole', data.user.role);
+                localStorage.setItem('username', data.user.name);
+                appState.currentUser = data.user.name;
+                appState.currentRole = data.user.role;
 
+                // ✅ Redirect to dashboard based on role
                 document.getElementById('loginPage').classList.add('hidden');
-                if (appState.selectedRole === 'admin') {
+                if (data.user.role === 'admin') {
                 document.getElementById('adminDashboard').classList.remove('hidden');
                 loadAdminSlots();
                 } else {
                 document.getElementById('userDashboard').classList.remove('hidden');
                 loadUserSlots();
                 }
+
                 showAlert('Login successful!', 'success');
-            } else {
-                showAlert(data.message || 'Invalid credentials', 'error');
+            } catch (err) {
+                console.error("Login error:", err);
+                showAlert(err.message || 'Error connecting to backend', 'error');
             }
-            })
-            .catch(err => {
-            console.error("Login error:", err);
-            showAlert('Error connecting to backend', 'error');
             });
-        });
+
 
         // Navigation setup after this...
         setupNavigation();
@@ -1314,26 +1331,31 @@
                 .then(res => res.json())
                 .then(slots => {
                 appState.slots = slots;
-                const availableSlots = slots;
-                if (availableSlots.length === 0) {
+                if (!Array.isArray(slots) || slots.length === 0) {
                     grid.innerHTML = '<div class="empty-state"><p>No available slots at the moment</p></div>';
                     return;
                 }
-                grid.innerHTML = availableSlots.map(slot => `
+
+                grid.innerHTML = slots.map(slot => `
                     <div class="slot-card available">
-                    <div class="slot-status available">Available</div>
-                    <div class="slot-number">${slot.number}</div>
-                    <div class="slot-info">${slot.location}</div>
-                    <div class="slot-info" style="text-transform: capitalize; color: var(--color-primary);">${slot.type}</div>
-                    <button class="btn btn-primary btn-sm" style="width: 100%;" onclick="openBookSlotModal(${slot.id})">Book Now</button>
-                    </div>`).join('');
+                    <div class="slot-status">${slot.status || 'Available'}</div>
+                    <div class="slot-number">${slot.label}</div>
+                    <div class="slot-info">${slot.lotName}</div>
+                    <div class="slot-info" style="text-transform: capitalize; color: var(--color-primary);">
+                        Level ${slot.level ?? 0} • ₹${slot.hourlyRate}/hr
+                    </div>
+                    <button class="btn btn-primary btn-sm" style="width: 100%;" 
+                        onclick="openBookSlotModal(${slot.id}, '${slot.label}')">Book Now</button>
+                    </div>
+                `).join('');
                 })
                 .catch(err => {
                 console.error("Load slots error:", err);
                 grid.innerHTML = '<div class="empty-state"><p>Error loading slots</p></div>';
                 showAlert('Error loading slots', 'error');
                 });
-        }
+            }
+
 
 
         function loadUserBookings() {
@@ -1400,151 +1422,201 @@
         }
 
 
-        function openBookSlotModal(slotId) {
-            const slot = appState.slots.find(s => s.id === slotId);
-            document.getElementById('bookSlotNumber').value = slot.number;
-            document.getElementById('bookSlotModal').dataset.slotId = slotId;
+        function openBookSlotModal(slotId, slotLabel) {
+            const modal = document.getElementById('bookSlotModal');
+            const slotNumberInput = document.getElementById('bookSlotNumber');
+            const vehicleSelect = document.getElementById('bookVehicle');
 
-            // Populate vehicles dropdown
-            const select = document.getElementById('bookVehicle');
-            select.innerHTML = '<option value="">Choose a vehicle</option>' +
-            appState.vehicles.map(v =>
-                `<option value="${v.id}">${v.make} ${v.model} (${v.plate})</option>`
-            ).join('');
+            // Store selected slotId for booking form
+            modal.dataset.slotId = slotId;
 
+            // Update modal UI
+            slotNumberInput.value = slotLabel || `Slot #${slotId}`;
+
+            // Load user's vehicles for selection
+            fetch(`${API_BASE_URL}/vehicles`, { headers: authHeaders() })
+                .then(res => res.json())
+                .then(vehicles => {
+                vehicleSelect.innerHTML = '<option value="">Choose a vehicle</option>';
+                if (!Array.isArray(vehicles) || vehicles.length === 0) {
+                    vehicleSelect.innerHTML = '<option value="">No vehicles found</option>';
+                    return;
+                }
+                vehicles.forEach(vehicle => {
+                    vehicleSelect.innerHTML += `<option value="${vehicle.id}">${vehicle.make} ${vehicle.model} (${vehicle.plate})</option>`;
+                });
+                })
+                .catch(err => {
+                console.error("Error loading vehicles:", err);
+                vehicleSelect.innerHTML = '<option value="">Error loading vehicles</option>';
+                });
+
+            // Finally, open the modal
             openModal('bookSlotModal');
-        }
+            }
 
-       document.getElementById('bookSlotForm').addEventListener('submit', function(e) {
+
+       document.getElementById('bookSlotForm').addEventListener('submit', async function(e) {
         e.preventDefault();
+
         const slotId = parseInt(document.getElementById('bookSlotModal').dataset.slotId);
         const vehicleId = parseInt(document.getElementById('bookVehicle').value);
         const date = document.getElementById('bookDate').value;
 
-        fetch(`${API_BASE_URL}/bookings`, {
+        if (!vehicleId || !date) {
+            showAlert('Please select a vehicle and date', 'error');
+            return;
+        }
+
+        // Add fallback start and end times
+        const startTime = `${date}T09:00:00`;  // 9 AM by default
+        const endTime = `${date}T10:00:00`;    // 10 AM (1-hour booking)
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/bookings`, {
             method: "POST",
             headers: authHeaders(),
-            body: JSON.stringify({ slotId, vehicleId, date })
-        })
-        .then(res => {
-            if (!res.ok) return res.json().then(j => Promise.reject(j));
-            return res.json();
-        })
-        .then(data => {
+            body: JSON.stringify({ slotId, vehicleId, startTime, endTime })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Error booking slot');
+
             closeModal('bookSlotModal');
             showAlert('Slot booked successfully!', 'success');
             loadUserSlots();
             loadUserBookings();
-        })
-        .catch(err => {
+        } catch (err) {
             console.error("Booking error:", err);
             showAlert(err.message || 'Error booking slot', 'error');
-        });
+        }
         });
 
 
-        function cancelBooking(bookingId) {
+
+
+        async function cancelBooking(bookingId) {
             if (!confirm('Are you sure you want to cancel this booking?')) return;
 
-            fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+            try {
+                const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
                 method: "DELETE",
                 headers: authHeaders()
-            })
-            .then(res => {
-                if (!res.ok) return res.json().then(j => Promise.reject(j));
+                });
+
+                if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.message || 'Error cancelling booking');
+                }
+
                 showAlert('Booking cancelled successfully!', 'success');
                 loadUserBookings();
                 loadUserSlots();
-            })
-            .catch(err => {
+            } catch (err) {
                 console.error("Cancel booking error:", err);
                 showAlert(err.message || 'Error cancelling booking', 'error');
-            });
-        }
+            }
+            }
+
 
 
         function openAddVehicleModal() {
             openModal('addVehicleModal');
         }
 
-        document.getElementById('addVehicleForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const payload = {
-            make: document.getElementById('vehicleMake').value,
-            model: document.getElementById('vehicleModel').value,
-            year: parseInt(document.getElementById('vehicleYear').value),
-            plate: document.getElementById('vehiclePlate').value
-        };
-        fetch(`${API_BASE_URL}/vehicles`, {
-            method: "POST",
-            headers: authHeaders(),
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(vehicle => {
-            closeModal('addVehicleModal');
-            showAlert('Vehicle added successfully!', 'success');
-            loadUserVehicles();
-            this.reset();
-        })
-        .catch(err => {
-            console.error("Add vehicle error:", err);
-            showAlert('Error adding vehicle', 'error');
-        });
-        });
+        document.getElementById('addVehicleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const payload = {
+                make: document.getElementById('vehicleMake').value.trim(),
+                model: document.getElementById('vehicleModel').value.trim(),
+                year: parseInt(document.getElementById('vehicleYear').value.trim()),
+                plate: document.getElementById('vehiclePlate').value.trim()
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/vehicles`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message || 'Error adding vehicle');
+
+                closeModal('addVehicleModal');
+                showAlert('Vehicle added successfully!', 'success');
+                loadUserVehicles();
+                this.reset();
+            } catch (err) {
+                console.error("Add vehicle error:", err);
+                showAlert(err.message || 'Error adding vehicle', 'error');
+            }
+            });
 
 
-        function deleteVehicle(vehicleId) {
+
+        async function deleteVehicle(vehicleId) {
             if (!confirm('Are you sure you want to remove this vehicle?')) return;
-            fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
                 method: "DELETE",
                 headers: authHeaders()
-            })
-            .then(res => {
-                if (!res.ok) return res.json().then(j => Promise.reject(j));
+                });
+
+                if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.message || 'Error removing vehicle');
+                }
+
                 showAlert('Vehicle removed successfully!', 'success');
                 loadUserVehicles();
-            })
-            .catch(err => {
+            } catch (err) {
                 console.error("Delete vehicle error:", err);
                 showAlert(err.message || 'Error removing vehicle', 'error');
-            });
-        }
+            }
+            }
+
 
 
         // ============================================
         // ADMIN FUNCTIONS
         // ============================================
-        function loadAdminCatalog() {
+        async function loadAdminCatalog() {
             const tbody = document.getElementById('catalogTableBody');
             tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
 
-            fetch(`${API_BASE_URL}/admin/catalog`, { headers: authHeaders() })
-                .then(res => res.json())
-                .then(data => {
-                const users = data.catalog || []; // ✅ Backend sends 'catalog'
-                appState.users = users;
+            try {
+                const res = await fetch(`${API_BASE_URL}/admin/catalog`, {
+                headers: authHeaders()
+                });
+                const data = await res.json();
 
-                if (users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5">No users found</td></tr>';
-                    return;
+                if (!res.ok) throw new Error(data.message || 'Failed to load users');
+
+                const users = Array.isArray(data) ? data : data.catalog || [];
+
+                if (!users.length) {
+                tbody.innerHTML = '<tr><td colspan="5">No users found</td></tr>';
+                return;
                 }
 
                 tbody.innerHTML = users.map(u => `
-                    <tr>
-                    <td>${u.bookingId || '-'}</td>
-                    <td>${u.userName || '-'}</td>
-                    <td>${u.userEmail || '-'}</td>
-                    <td>${u.role || '-'}</td>
-                    <td>${u.plateNo || '-'}</td>
-                    </tr>
+                <tr>
+                    <td>${u.User?.name || u.name || 'N/A'}</td>
+                    <td>${u.User?.email || u.email || 'N/A'}</td>
+                    <td>${u.Vehicle ? u.Vehicle.plateNo : (u.vehicles?.length || 0)}</td>
+                    <td>${u.status || u.Bookings?.length || '—'}</td>
+                    <td>${new Date(u.createdAt).toLocaleDateString()}</td>
+                </tr>
                 `).join('');
-                })
-                .catch(err => {
+            } catch (err) {
                 console.error("Load users error:", err);
                 tbody.innerHTML = '<tr><td colspan="5">Error loading users</td></tr>';
-                showAlert('Error loading users', 'error');
-                });
+                showAlert(err.message || 'Error loading users', 'error');
+            }
             }
 
 
@@ -1553,127 +1625,146 @@
             openModal('createSlotModal');
         }
 
-       document.getElementById('createSlotForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const payload = {
-            number: document.getElementById('slotNumber').value,
-            location: document.getElementById('slotLocation').value,
-            type: document.getElementById('slotType').value
-        };
-        fetch(`${API_BASE_URL}/slots`, {
-            method: "POST",
-            headers: authHeaders(),
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(slot => {
-            closeModal('createSlotModal');
-            showAlert('Slot created successfully!', 'success');
-            loadAdminSlots();
-            this.reset();
-        })
-        .catch(err => {
-            console.error("Create slot error:", err);
-            showAlert('Error creating slot', 'error');
-        });
-        });
+       document.getElementById('createSlotForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const payload = {
+            label: document.getElementById('slotNumber').value,
+            lotName: document.getElementById('slotLocation').value,
+            level: document.getElementById('slotType').value
+            };
 
 
-        function openEditSlotModal(slotId) {
-            fetch(`${API_BASE_URL}/slots/${slotId}`, { headers: authHeaders() })
-                .then(res => res.json())
-                .then(slot => {
-                document.getElementById('editSlotModal').dataset.slotId = slot.id;
-                document.getElementById('editSlotNumber').value = slot.number;
-                document.getElementById('editSlotLocation').value = slot.location;
-                document.getElementById('editSlotType').value = slot.type;
-                openModal('editSlotModal');
-                })
-                .catch(err => {
-                console.error("Load slot for edit error:", err);
-                showAlert('Error loading slot details', 'error');
+            try {
+                const res = await fetch(`${API_BASE_URL}/slots`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify(payload)
                 });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message || 'Error creating slot');
+
+                closeModal('createSlotModal');
+                showAlert('Slot created successfully!', 'success');
+                loadAdminSlots();
+                this.reset();
+            } catch (err) {
+                console.error("Create slot error:", err);
+                showAlert(err.message || 'Error creating slot', 'error');
             }
+            });
 
-        document.getElementById('createUserForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const payload = {
-            name: document.getElementById('newUsername').value,
-            password: document.getElementById('newPassword').value,
-            email: document.getElementById('newEmail').value
-        };
 
-        fetch(`${API_BASE_URL}/admin/users`, {
-            method: "POST",
-            headers: authHeaders(),
-            body: JSON.stringify(payload)
-        })
-        .then(res => {
-            if (!res.ok) return res.json().then(j => Promise.reject(j));
-            return res.json();
-        })
-        .then(user => {
-            showAlert('User created successfully!', 'success');
-            this.reset();
-            loadAdminCatalog(); // 
-        })
-        .catch(err => {
-            console.error("Create user error:", err);
-            showAlert(err.message || 'Error creating user', 'error');
-        });
-        });
+
+
+       function openEditSlotModal(slotId) {
+        fetch(`${API_BASE_URL}/slots/${slotId}`, { headers: authHeaders() })
+            .then(res => res.json())
+            .then(slot => {
+            document.getElementById('editSlotModal').dataset.slotId = slot.id;
+            document.getElementById('editSlotLabel').value = slot.label || '';
+            document.getElementById('editSlotLotName').value = slot.lotName || '';
+            document.getElementById('editSlotLevel').value = slot.level ?? 0;
+            document.getElementById('editSlotRate').value = slot.hourlyRate ?? 0;
+            document.getElementById('editSlotStatus').value = slot.status || 'Available';
+            openModal('editSlotModal');
+            })
+            .catch(err => {
+            console.error("Load slot for edit error:", err);
+            showAlert('Error loading slot details', 'error');
+            });
+        }
+            document.getElementById('createUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const payload = {
+                name: document.getElementById('newUsername').value.trim(),
+                password: document.getElementById('newPassword').value.trim(),
+                email: document.getElementById('newEmail').value.trim()
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/admin/users`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message || 'Error creating user');
+
+                showAlert('User created successfully!', 'success');
+                this.reset();
+                loadAdminCatalog(); // refresh list
+            } catch (err) {
+                console.error("Create user error:", err);
+                showAlert(err.message || 'Error creating user', 'error');
+            }
+            });
+
 
        // ============================================
         // ADMIN EDIT SLOT (PUT)
         // ============================================
-        document.getElementById('editSlotForm').addEventListener('submit', function(e) {
+       document.getElementById('editSlotForm').addEventListener('submit', async function (e) {
         e.preventDefault();
+        const slotId = document.getElementById('editSlotModal').dataset.slotId;
 
-        const slotId = parseInt(document.getElementById('editSlotModal').dataset.slotId);
-        const updatedSlot = {
-            number: document.getElementById('editSlotNumber').value,
-            location: document.getElementById('editSlotLocation').value,
-            type: document.getElementById('editSlotType').value
+        const payload = {
+            label: document.getElementById('editSlotLabel').value,
+            lotName: document.getElementById('editSlotLotName').value,
+            level: parseInt(document.getElementById('editSlotLevel').value),
+            hourlyRate: parseFloat(document.getElementById('editSlotRate').value),
+            status: document.getElementById('editSlotStatus').value
         };
 
-        fetch(`${API_BASE_URL}/slots/${slotId}`, {
+        try {
+            const res = await fetch(`${API_BASE_URL}/slots/${slotId}`, {
             method: "PUT",
             headers: authHeaders(),
-            body: JSON.stringify(updatedSlot)
-        })
-        .then(res => {
-            if (!res.ok) return res.json().then(j => Promise.reject(j));
-            return res.json();
-        })
-        .then(data => {
+            body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Error updating slot');
+
             closeModal('editSlotModal');
             showAlert('Slot updated successfully!', 'success');
-            loadAdminSlots(); // Refresh list
-        })
-        .catch(err => {
+            loadAdminSlots();
+        } catch (err) {
             console.error("Edit slot error:", err);
-            showAlert(err.message || 'Error updating slot', 'error');
-        });
+            showAlert(err.message || 'Error editing slot', 'error');
+        }
         });
 
 
-        function deleteSlot(slotId) {
+
+
+        async function deleteSlot(slotId) {
             if (!confirm('Are you sure you want to delete this slot?')) return;
 
-            fetch(`${API_BASE_URL}/slots/${slotId}`, {
+            try {
+                const res = await fetch(`${API_BASE_URL}/slots/${slotId}`, {
                 method: "DELETE",
                 headers: authHeaders()
-            })
-            .then(res => {
-                if (!res.ok) return res.json().then(j => Promise.reject(j));
+                });
+
+                if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.message || 'Error deleting slot');
+                }
+
                 showAlert('Slot deleted successfully!', 'success');
-                loadAdminSlots(); // Refresh list
-            })
-            .catch(err => {
+                loadAdminSlots();
+            } catch (err) {
                 console.error("Delete slot error:", err);
                 showAlert(err.message || 'Error deleting slot', 'error');
-            });
             }
+            }
+
 
 
        
@@ -1701,23 +1792,37 @@
         }
 
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('userRole');
-                localStorage.removeItem('username');
-                appState.currentUser = null;
-                appState.currentRole = null;
+            // Clear local storage
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('username');
 
-                document.getElementById('userDashboard').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.add('hidden');
-                document.getElementById('loginPage').classList.remove('hidden');
-                document.getElementById('loginForm').reset();
-                document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
-                document.querySelector('.role-card[data-role="user"]').classList.add('active');
+            // Reset app state
+            appState.currentUser = null;
+            appState.currentRole = null;
+            appState.selectedRole = null;
 
-                showAlert('Logged out successfully!', 'success');
-            }
+            // Hide dashboards
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('userDashboard').classList.add('hidden');
+
+            // Hide all dashboard views
+            document.querySelectorAll('.main-content > div').forEach(div => div.classList.add('hidden'));
+
+            // Reset and hide login form
+            const form = document.getElementById('loginForm');
+            form.reset();
+            document.querySelector('.login-form').classList.add('hidden');
+
+            // Show role selection cards again
+            document.querySelector('.login-options').classList.remove('hidden');
+
+            // Show login page again
+            document.getElementById('loginPage').classList.remove('hidden');
+
+            showAlert('Logged out successfully!', 'success');
         }
+
 
         // Close modal when clicking outside
         document.querySelectorAll('.modal').forEach(modal => {
