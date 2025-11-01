@@ -6,7 +6,7 @@ const bookingController = require('../controllers/bookingController');
 // User routes
 router.post('/', auth(), bookingController.bookSlot);                  // Book a slot
 router.put('/:bookingId/cancel', auth(), bookingController.cancelBooking); // Cancel booking
-router.get('/me', auth(), bookingController.myBookings);              // My bookings
+router.get('/my', auth(), bookingController.myBookings);              // My bookings
 
 // Admin route: get all bookings
 router.get('/all', auth('admin'), bookingController.allBookings);

@@ -8,7 +8,7 @@ require('dotenv').config();
 // ===========================
 const express = require('express');
 const cors = require('cors');
-const { sequelize, User, Vehicle, Slot, Booking } = require('./models');
+const { sequelize } = require('./models');
 
 // Route imports
 const authRoutes = require('./routes/auth');
@@ -21,7 +21,7 @@ const app = express();
 
 // ===========================
 // Middleware setup
-// ===========================
+// ==========================
 app.use(express.json());
 
 // CORS configuration
@@ -82,7 +82,7 @@ const PORT = process.env.PORT || 5000;
 async function startServer() {
   try {
     console.log('✅ Connecting to MySQL...');
-    await sequelize.sync();
+    await sequelize.sync({ alter : false});
     console.log('✅ Tables synced successfully');
 
     app.listen(PORT, () =>

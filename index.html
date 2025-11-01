@@ -438,7 +438,7 @@
             opacity: 0.7;
         }
 
-        .slot-status {
+        /*.slot-status {
             position: absolute;
             top: var(--spacing-sm);
             right: var(--spacing-sm);
@@ -457,7 +457,7 @@
         .slot-status.reserved {
             background: var(--color-reserved);
             color: white;
-        }
+        }*/
 
         .slot-number {
             font-size: 2rem;
@@ -661,21 +661,119 @@
             padding: var(--spacing-lg);
         }
 
+        .vehicle-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-lg);
+        }
+
+        /* Each card */
         .vehicle-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-md);
+        background: var(--color-surface-elevated);
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-md);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .vehicle-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Info section */
+        .vehicle-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: var(--spacing-sm);
         }
 
         .vehicle-info h4 {
-            margin-bottom: var(--spacing-xs);
+        margin: 0;
+        font-size: 1rem;
+        color: var(--color-on-surface);
         }
 
         .vehicle-details {
-            font-size: 0.875rem;
-            color: var(--color-on-surface-secondary);
+        font-size: 0.9rem;
+        color: var(--color-on-surface-secondary);
         }
+
+        /* Delete button */
+        .vehicle-card .btn-danger {
+        align-self: flex-end;
+        background: var(--color-error);
+        border: none;
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: background 0.2s ease;
+        }
+
+        .vehicle-card .btn-danger:hover {
+        background: var(--color-error-hover, #d32f2f);
+        }
+        .slot-status {
+        display: inline-block;
+        font-weight: 600;
+        text-transform: capitalize;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        }
+
+        .slot-status.available {
+        color: #4caf50;
+        background: rgba(76, 175, 80, 0.15);
+        }
+
+        .slot-status.reserved {
+        color: #ffc107;
+        background: rgba(255, 193, 7, 0.15);
+        }
+
+        .slot-status.occupied {
+        color: #f44336;
+        background: rgba(244, 67, 54, 0.15);
+        }
+
+        .slot-status.cancelled {
+        color: #9e9e9e;
+        background: rgba(158, 158, 158, 0.1);
+        text-decoration: line-through;
+        }
+
+        .slot-status.pending {
+        color: #ff9800;
+        background: rgba(255, 152, 0, 0.15);
+        }
+
+        .slot-status.completed {
+        color: #4caf50;
+        background: rgba(76, 175, 80, 0.15);
+        }
+
+        .slot-status.unknown {
+        color: gray;
+        font-style: italic;
+        }
+
+
+        .cancelled-row {
+        opacity: 0.6;
+        background-color: #222;
+        }
+
+
+
+
     </style>
 </head>
 <body>
@@ -899,11 +997,13 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>User</th>
-                                <th>Email</th>
-                                <th>Vehicles</th>
-                                <th>Active Bookings</th>
-                                <th>Joined Date</th>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Vehicle</th>
+                            <th>Slot</th>
+                            <th>Rate</th>
+                            <th>Status</th>
+                            <th>Booked On</th>
                             </tr>
                         </thead>
                         <tbody id="catalogTableBody"></tbody>
@@ -914,71 +1014,82 @@
     </div>
 
     <!-- MODALS -->
+
     <!-- Book Slot Modal -->
     <div id="bookSlotModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Book Parking Slot</h2>
-                <button class="modal-close" onclick="closeModal('bookSlotModal')">&times;</button>
-            </div>
-            <form id="bookSlotForm">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">Slot Number</label>
-                        <input type="text" id="bookSlotNumber" class="form-input" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="bookVehicle">Select Vehicle</label>
-                        <select id="bookVehicle" class="form-input" required>
-                            <option value="">Choose a vehicle</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="bookDate">Booking Date</label>
-                        <input type="date" id="bookDate" class="form-input" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('bookSlotModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Confirm Booking</button>
-                </div>
-            </form>
+    <div class="modal-content">
+        <div class="modal-header">
+        <h2 class="modal-title">Book Parking Slot</h2>
+        <button class="modal-close" onclick="closeModal('bookSlotModal')">&times;</button>
         </div>
+        <form id="bookSlotForm">
+        <div class="modal-body">
+            <div class="form-group">
+            <label class="form-label">Slot Number</label>
+            <input type="text" id="bookSlotNumber" class="form-input" readonly>
+            </div>
+            <div class="form-group">
+            <label class="form-label" for="bookVehicle">Select Vehicle</label>
+            <select id="bookVehicle" class="form-input" required>
+                <option value="">Choose a vehicle</option>
+            </select>
+            <!-- 🆕 Add Vehicle Shortcut -->
+            <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                style="margin-top: 8px;"
+                onclick="openAddVehicleFromBooking()">
+                + Add New Vehicle
+            </button>
+            </div>
+            <div class="form-group">
+            <label class="form-label" for="bookDate">Booking Date</label>
+            <input type="date" id="bookDate" class="form-input" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('bookSlotModal')">Cancel</button>
+            <button type="submit" class="btn btn-primary">Confirm Booking</button>
+        </div>
+        </form>
+    </div>
     </div>
 
-    <!-- Add Vehicle Modal -->
-    <div id="addVehicleModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Add New Vehicle</h2>
-                <button class="modal-close" onclick="closeModal('addVehicleModal')">&times;</button>
-            </div>
-            <form id="addVehicleForm">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label" for="vehicleMake">Make</label>
-                        <input type="text" id="vehicleMake" class="form-input" placeholder="e.g., Toyota" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="vehicleModel">Model</label>
-                        <input type="text" id="vehicleModel" class="form-input" placeholder="e.g., Camry" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="vehicleYear">Year</label>
-                        <input type="number" id="vehicleYear" class="form-input" placeholder="e.g., 2023" min="1900" max="2025" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="vehiclePlate">License Plate</label>
-                        <input type="text" id="vehiclePlate" class="form-input" placeholder="e.g., ABC-1234" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('addVehicleModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Vehicle</button>
-                </div>
-            </form>
-        </div>
+
+   <!-- Add Vehicle Modal -->
+<div id="addVehicleModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Register Vehicle</h2>
+      <button class="modal-close" onclick="closeModal('addVehicleModal')">&times;</button>
     </div>
+    <form id="addVehicleForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">License Plate</label>
+          <input type="text" id="vehiclePlate" class="form-input" placeholder="e.g. TN09AB1234" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Color</label>
+          <input type="text" id="vehicleColor" class="form-input" placeholder="e.g. Red">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vehicle Type</label>
+          <select id="vehicleType" class="form-input" required>
+            <option value="Car">Car</option>
+            <option value="TwoWheeler">Two Wheeler</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('addVehicleModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Register</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 
     <!-- Create Slot Modal -->
     <div id="createSlotModal" class="modal hidden">
@@ -1359,101 +1470,142 @@
 
 
         function loadUserBookings() {
-            const tbody = document.getElementById('bookingsTableBody');
-            tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+        const tbody = document.getElementById('bookingsTableBody');
+        tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
 
-            fetch(`${API_BASE_URL}/bookings/me`, { headers: authHeaders() })
-                .then(res => res.json())
-                .then(bookings => {
-                appState.bookings = bookings;
-                if (bookings.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:3rem;">No bookings found</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = bookings.map(booking => {
-                    const slot = booking.slot; // expect server to populate slot and vehicle
-                    const vehicle = booking.vehicle;
-                    return `
-                    <tr>
-                        <td><strong>${slot.number}</strong></td>
-                        <td>${vehicle.make} ${vehicle.model} (${vehicle.plate})</td>
-                        <td>${booking.date}</td>
-                        <td><span class="slot-status ${booking.status}">${booking.status}</span></td>
-                        <td>
-                        <button class="btn btn-danger btn-sm" onclick="cancelBooking('${booking.id}')">Cancel</button>
-                        </td>
-                    </tr>`;
-                }).join('');
-                })
-                .catch(err => {
-                console.error("Load bookings error:", err);
-                tbody.innerHTML = '<tr><td colspan="5">Error loading bookings</td></tr>';
-                showAlert('Error loading bookings', 'error');
-                });
-        }
+        fetch(`${API_BASE_URL}/bookings/my`, { headers: authHeaders() })
+            .then(res => {
+            if (!res.ok) throw new Error(`Error ${res.status}`);
+            return res.json();
+            })
+            .then(data => {
+            const bookings = Array.isArray(data) ? data : data.bookings || [];
 
-
-        function loadUserVehicles() {
-            const container = document.getElementById('vehiclesList');
-            container.innerHTML = '<div class="empty-state"><p>Loading...</p></div>';
-
-            fetch(`${API_BASE_URL}/vehicles`, { headers: authHeaders() })
-                .then(res => res.json())
-                .then(vehicles => {
-                appState.vehicles = vehicles;
-                if (vehicles.length === 0) {
-                    container.innerHTML = '<div class="empty-state"><p>No vehicles registered yet</p></div>';
-                    return;
-                }
-                container.innerHTML = vehicles.map(vehicle => `
-                    <div class="card vehicle-card">
-                    <div class="vehicle-info">
-                        <h4>${vehicle.make} ${vehicle.model}</h4>
-                        <div class="vehicle-details">Year: ${vehicle.year} | Plate: ${vehicle.plate}</div>
-                    </div>
-                    <button class="btn btn-danger btn-sm" onclick="deleteVehicle(${vehicle.id})">Remove</button>
-                    </div>`).join('');
-                })
-                .catch(err => {
-                console.error("Load vehicles error:", err);
-                container.innerHTML = '<div class="empty-state"><p>Error loading vehicles</p></div>';
-                showAlert('Error loading vehicles', 'error');
-                });
-        }
-
-
-        function openBookSlotModal(slotId, slotLabel) {
-            const modal = document.getElementById('bookSlotModal');
-            const slotNumberInput = document.getElementById('bookSlotNumber');
-            const vehicleSelect = document.getElementById('bookVehicle');
-
-            // Store selected slotId for booking form
-            modal.dataset.slotId = slotId;
-
-            // Update modal UI
-            slotNumberInput.value = slotLabel || `Slot #${slotId}`;
-
-            // Load user's vehicles for selection
-            fetch(`${API_BASE_URL}/vehicles`, { headers: authHeaders() })
-                .then(res => res.json())
-                .then(vehicles => {
-                vehicleSelect.innerHTML = '<option value="">Choose a vehicle</option>';
-                if (!Array.isArray(vehicles) || vehicles.length === 0) {
-                    vehicleSelect.innerHTML = '<option value="">No vehicles found</option>';
-                    return;
-                }
-                vehicles.forEach(vehicle => {
-                    vehicleSelect.innerHTML += `<option value="${vehicle.id}">${vehicle.make} ${vehicle.model} (${vehicle.plate})</option>`;
-                });
-                })
-                .catch(err => {
-                console.error("Error loading vehicles:", err);
-                vehicleSelect.innerHTML = '<option value="">Error loading vehicles</option>';
-                });
-
-            // Finally, open the modal
-            openModal('bookSlotModal');
+            if (bookings.length === 0) {
+                tbody.innerHTML = `
+                <tr><td colspan="5" style="text-align:center;padding:3rem;">
+                    No bookings found
+                </td></tr>`;
+                return;
             }
+
+           tbody.innerHTML = bookings.map(booking => {
+            const slot = booking.Slot || booking.slot || {};
+            const vehicle = booking.Vehicle || booking.vehicle || {};
+
+            return `
+                <tr class="${booking.paymentStatus === 'Cancelled' ? 'cancelled-row' : ''}">
+                <td><strong>${slot.label || '—'}</strong></td>
+                <td>${vehicle.plateNo || '—'} (${vehicle.type || '-'})</td>
+                <td>${new Date(booking.startTime).toLocaleString()}</td>
+                <td>
+                    <span class="slot-status ${booking.paymentStatus.toLowerCase()}">
+                    ${booking.paymentStatus}
+                    </span>
+                </td>
+                <td>
+                    ${
+                    booking.paymentStatus === 'Cancelled'
+                        ? '<span style="color: gray;">—</span>'
+                        : `<button class="btn btn-danger btn-sm" onclick="cancelBooking(${booking.id})">Cancel</button>`
+                    }
+                </td>
+                </tr>
+            `;
+            }).join('');
+
+            })
+            .catch(err => {
+            console.error("Load bookings error:", err);
+            tbody.innerHTML = '<tr><td colspan="5">Error loading bookings</td></tr>';
+            showAlert(err.message || 'Error loading bookings', 'error');
+            });
+        }
+
+
+
+        async function loadUserVehicles() {
+        const list = document.getElementById('vehiclesList');
+        list.innerHTML = `<p>Loading...</p>`;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/vehicles/myvehicles`, {
+            headers: authHeaders(),
+            });
+
+            if (!res.ok) throw new Error(`Error ${res.status}`);
+
+            const vehicles = await res.json();
+
+            if (!Array.isArray(vehicles)) throw new Error("Unexpected response format");
+
+            if (vehicles.length === 0) {
+            list.innerHTML = `<div class="empty-state"><p>No vehicles registered yet.</p></div>`;
+            return;
+            }
+
+            list.innerHTML = `
+            <div class="vehicle-grid">
+                ${vehicles
+                .map(
+                    (v) => `
+                <div class="vehicle-card">
+                    <div class="vehicle-info">
+                    <h4>Plate: ${v.plateNo}</h4>
+                    <div class="vehicle-details">Type: ${v.type}</div>
+                    <div class="vehicle-details">Color: ${v.color || '-'}</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="deleteVehicle(${v.id})">Delete</button>
+                </div>`
+                )
+                .join('')}
+            </div>`;
+        } catch (err) {
+            console.error("Load vehicles error:", err);
+            list.innerHTML = `<div class="empty-state"><p>Error loading vehicles</p></div>`;
+            showAlert(err.message || "Error loading vehicles", "error");
+        }
+        }
+
+
+
+        async function openBookSlotModal(slotId) {
+            try {
+                // store the slot ID for booking
+                const modal = document.getElementById('bookSlotModal');
+                modal.dataset.slotId = slotId;
+
+                // set the slot number field
+                const slot = appState.slots.find(s => s.id === slotId);
+                document.getElementById('bookSlotNumber').value = slot ? slot.label || slot.number : `Slot #${slotId}`;
+
+                // fetch user's vehicles
+                const res = await fetch(`${API_BASE_URL}/vehicles/myvehicles`, {
+                headers: authHeaders(),
+                });
+
+                if (!res.ok) throw new Error("Failed to fetch vehicles");
+
+                const vehicles = await res.json();
+
+                const vehicleSelect = document.getElementById('bookVehicle');
+                vehicleSelect.innerHTML = `<option value="">Choose a vehicle</option>`;
+
+                if (vehicles.length === 0) {
+                vehicleSelect.innerHTML = `<option value="">No vehicles found. Please add one first.</option>`;
+                } else {
+                vehicles.forEach(v => {
+                    vehicleSelect.innerHTML += `<option value="${v.id}">${v.plateNo} (${v.type})</option>`;
+                });
+                }
+
+                openModal('bookSlotModal');
+            } catch (err) {
+                console.error("Error loading vehicles for booking:", err);
+                showAlert('Could not load vehicles. Try again.', 'error');
+            }
+            }
+
 
 
        document.getElementById('bookSlotForm').addEventListener('submit', async function(e) {
@@ -1496,27 +1648,36 @@
 
 
         async function cancelBooking(bookingId) {
-            if (!confirm('Are you sure you want to cancel this booking?')) return;
+        if (!confirm('Are you sure you want to cancel this booking?')) return;
 
-            try {
-                const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
-                method: "DELETE",
-                headers: authHeaders()
-                });
+        try {
+            const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
+            method: 'PUT',
+            headers: authHeaders(),
+            });
 
-                if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.message || 'Error cancelling booking');
-                }
+            const data = await res.json();
 
-                showAlert('Booking cancelled successfully!', 'success');
-                loadUserBookings();
-                loadUserSlots();
-            } catch (err) {
-                console.error("Cancel booking error:", err);
-                showAlert(err.message || 'Error cancelling booking', 'error');
+            if (!res.ok) {
+            throw new Error(data.message || `Error ${res.status}`);
             }
-            }
+
+            showAlert('Booking cancelled successfully!', 'success');
+            loadUserBookings();  // ✅ Refresh table immediately
+            loadUserSlots();     // ✅ Slot becomes available again
+        } catch (err) {
+            console.error("Cancel booking error:", err);
+            showAlert(err.message || 'Error cancelling booking', 'error');
+        }
+        }
+
+        function showAlert(message, type = 'info') {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type}`;
+        alert.textContent = message;
+        document.body.appendChild(alert);
+        setTimeout(() => alert.remove(), 3000);
+        }
 
 
 
@@ -1528,32 +1689,31 @@
             e.preventDefault();
 
             const payload = {
-                make: document.getElementById('vehicleMake').value.trim(),
-                model: document.getElementById('vehicleModel').value.trim(),
-                year: parseInt(document.getElementById('vehicleYear').value.trim()),
-                plate: document.getElementById('vehiclePlate').value.trim()
+                plateNo: document.getElementById('vehiclePlate').value,
+                color: document.getElementById('vehicleColor').value,
+                type: document.getElementById('vehicleType').value
             };
 
             try {
-                const res = await fetch(`${API_BASE_URL}/vehicles`, {
+                const res = await fetch(`${API_BASE_URL}/vehicles/register`, {
                 method: "POST",
                 headers: authHeaders(),
                 body: JSON.stringify(payload)
                 });
-
                 const data = await res.json();
 
-                if (!res.ok) throw new Error(data.message || 'Error adding vehicle');
+                if (!res.ok) throw new Error(data.message || "Error registering vehicle");
 
+                showAlert("Vehicle registered successfully!", "success");
                 closeModal('addVehicleModal');
-                showAlert('Vehicle added successfully!', 'success');
-                loadUserVehicles();
                 this.reset();
+                loadUserVehicles();
             } catch (err) {
                 console.error("Add vehicle error:", err);
-                showAlert(err.message || 'Error adding vehicle', 'error');
+                showAlert(err.message || "Error adding vehicle", "error");
             }
             });
+
 
 
 
@@ -1584,40 +1744,50 @@
         // ============================================
         // ADMIN FUNCTIONS
         // ============================================
-        async function loadAdminCatalog() {
-            const tbody = document.getElementById('catalogTableBody');
-            tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+       async function loadAdminCatalog() {
+        const tbody = document.getElementById('catalogTableBody');
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading...</td></tr>';
 
-            try {
-                const res = await fetch(`${API_BASE_URL}/admin/catalog`, {
-                headers: authHeaders()
-                });
-                const data = await res.json();
+        try {
+            const res = await fetch(`${API_BASE_URL}/admin/catalog`, {
+            headers: authHeaders(),
+            });
+            const data = await res.json();
 
-                if (!res.ok) throw new Error(data.message || 'Failed to load users');
+            if (!res.ok) throw new Error(data.message || 'Failed to load catalog');
 
-                const users = Array.isArray(data) ? data : data.catalog || [];
+            const catalog = Array.isArray(data.catalog) ? data.catalog : [];
 
-                if (!users.length) {
-                tbody.innerHTML = '<tr><td colspan="5">No users found</td></tr>';
-                return;
-                }
+            if (!catalog.length) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No bookings found</td></tr>';
+            return;
+            }
 
-                tbody.innerHTML = users.map(u => `
+            tbody.innerHTML = catalog
+            .map((b) => `
                 <tr>
-                    <td>${u.User?.name || u.name || 'N/A'}</td>
-                    <td>${u.User?.email || u.email || 'N/A'}</td>
-                    <td>${u.Vehicle ? u.Vehicle.plateNo : (u.vehicles?.length || 0)}</td>
-                    <td>${u.status || u.Bookings?.length || '—'}</td>
-                    <td>${new Date(u.createdAt).toLocaleDateString()}</td>
+                <td>${b.userName}</td>
+                <td>${b.userEmail}</td>
+                <td>${b.plateNo} (${b.vehicleType})</td>
+                <td>${b.slotLabel} - ${b.lotName}</td>
+                <td>₹${b.rate}/hr</td>
+                <td>
+                <span class="slot-status ${b.slotStatus.toLowerCase()}">
+                    ${b.slotStatus}
+                </span>
+                </td>
+                <td>${new Date(b.createdAt).toLocaleDateString()}</td>
                 </tr>
-                `).join('');
-            } catch (err) {
-                console.error("Load users error:", err);
-                tbody.innerHTML = '<tr><td colspan="5">Error loading users</td></tr>';
-                showAlert(err.message || 'Error loading users', 'error');
-            }
-            }
+            `)
+            .join('');
+        } catch (err) {
+            console.error('Load catalog error:', err);
+            tbody.innerHTML =
+            '<tr><td colspan="7" style="text-align:center;">Error loading catalog</td></tr>';
+            showAlert(err.message || 'Error loading catalog', 'error');
+        }
+        }
+
 
 
 

@@ -8,12 +8,12 @@ exports.registerVehicle = async (req, res, next) => {
     const userId = req.user.id;
 
     const existing = await Vehicle.findOne({ where: { plateNo } });
-    if (existing) return res.status(400).json({ msg: 'Vehicle already registered' });
+    if (existing) return res.status(400).json({ message: 'Vehicle already registered' });
     if (!plateNo || !type || !color)
       return res.status(400).json({ message: 'plateNo, type, and color required' });
 
     const vehicle = await Vehicle.create({ plateNo, type, color, userId });
-    res.status(201).json({ msg: 'Vehicle registered successfully', vehicle });
+    res.status(201).json({ message: 'Vehicle registered successfully', vehicle });
   } catch (err) {
     next(err);
   }
@@ -23,7 +23,7 @@ exports.registerVehicle = async (req, res, next) => {
 exports.getVehicles = async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ msg: 'Access denied' });
+      return res.status(403).json({ message: 'Access denied' });
     }
 
     const vehicles = await Vehicle.findAll({
@@ -44,10 +44,10 @@ exports.getVehicleById = async (req, res, next) => {
       include: [{ model: User, attributes: ['id', 'name', 'email'] }]
     });
 
-    if (!vehicle) return res.status(404).json({ msg: 'Vehicle not found' });
+    if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
 
     if (req.user.role !== 'admin' && vehicle.userId !== req.user.id) {
-      return res.status(403).json({ msg: 'Access denied' });
+      return res.status(403).json({ message: 'Access denied' });
     }
 
     res.json(vehicle);
@@ -62,14 +62,30 @@ exports.getMyVehicles = async (req, res, next) => {
     const userId = req.user.id;
     const vehicles = await Vehicle.findAll({ where: { userId } });
 
-    if (!vehicles || vehicles.length === 0) {
-      return res.status(404).json({ msg: 'No vehicles found for this user' });
-    }
-
     res.status(200).json(vehicles);
   } catch (err) {
     next(err);
   }
 };
+
+// Delete vehicle (owner only)
+exports.deleteVehicle = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const vehicle = await Vehicle.findOne({ where: { id, userId } });
+    if (!vehicle) {
+      return res.status(404).json({ message: "Vehicle not found or not authorized" });
+    }
+
+    await vehicle.destroy();
+    res.json({ message: "Vehicle deleted successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 
 

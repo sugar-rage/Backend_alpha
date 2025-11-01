@@ -38,5 +38,4 @@ const Vehicle = sequelize.define('Vehicle', {
 // ✅ Associations
 // ===========================
 Vehicle.belongsTo(User, { foreignKey: 'userId' });
-sequelize.sync({ alter: true });
 module.exports = Vehicle;

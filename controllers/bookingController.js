@@ -30,7 +30,6 @@ exports.bookSlot = async (req, res, next) => {
   }
 };
 
-// Cancel booking
 exports.cancelBooking = async (req, res, next) => {
   try {
     const { bookingId } = req.params;
@@ -39,10 +38,10 @@ exports.cancelBooking = async (req, res, next) => {
     const booking = await Booking.findOne({ where: { id: bookingId, userId } });
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-    await booking.update({ status: 'Cancelled' });
+    await booking.update({ paymentStatus: 'Cancelled' }); // 👈 Update to Cancelled
 
     const slot = await Slot.findByPk(booking.slotId);
-    if (slot) await slot.update({ status: 'Available' });
+    if (slot) await slot.update({ status: 'Available' }); // 👈 Free the slot
 
     res.json({ message: "Booking cancelled successfully" });
   } catch (err) {
@@ -54,15 +53,24 @@ exports.cancelBooking = async (req, res, next) => {
 exports.myBookings = async (req, res, next) => {
   try {
     const bookings = await Booking.findAll({
-      where: { userId: req.user.id },
-      include: [Slot, Vehicle],
-      order: [['createdAt', 'DESC']]
+      where: {
+        userId: req.user.id
+        //paymentStatus: { [require('sequelize').Op.ne]: 'Cancelled' } // 👈 exclude cancelled
+      },
+      include: [
+        { model: Slot, attributes: ['id', 'label', 'lotName', 'status', 'hourlyRate'] },
+        { model: Vehicle, attributes: ['id', 'plateNo', 'type', 'color'] }
+      ],
+      order: [['createdAt', 'DESC']],
     });
-    res.json({ bookings });
+
+    res.status(200).json({ bookings });
   } catch (err) {
-    next(err);
+    console.error("Error fetching my bookings:", err);
+    res.status(500).json({ message: 'Error fetching bookings', error: err.message });
   }
 };
+
 
 // Admin: Get all bookings
 exports.allBookings = async (req, res, next) => {
